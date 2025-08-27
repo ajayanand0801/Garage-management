@@ -1,9 +1,18 @@
+using GarageManagement.Application.Interfaces;
+using GarageManagement.Application.Interfaces.Mapper;
+using GarageManagement.Application.Interfaces.Validator;
+using GarageManagement.Application.Mappings;
+using GarageManagement.Infrastructure;
+using GarageManagement.Infrastructure.Repositories;
+using GarageManagement.Infrastructure.Validator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Microsoft.Win32;
 using System.Reflection;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +21,17 @@ builder.Services.AddControllers();
 
 // Swagger/OpenAPI services
 builder.Services.AddEndpointsApiExplorer(); // Required for minimal APIs
+
+// Register generic repository
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+//Automatically register all repositories
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+
+builder.Services.AddScoped<IJsonValidator, JsonValidator>();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddScoped<IMapperUtility, MapperUtility>();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -26,6 +46,15 @@ builder.Services.AddSwaggerGen(options =>
     // options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 
+builder.Services.AddInfrastructure(
+    builder.Configuration.GetConnectionString("DefaultConnection")!
+);
+
+//builder.Services.AddControllers()
+//    .AddJsonOptions(options =>
+//    {
+//        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+//    });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
