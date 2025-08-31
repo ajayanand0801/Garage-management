@@ -19,6 +19,8 @@ namespace GarageManagement.Infrastructure.DbContext
         public DbSet<VehicleVariant> Variants => Set<VehicleVariant>();
         public DbSet<VehicleOwner> Owners => Set<VehicleOwner>();
 
+        public DbSet<VehicleLookup> VehicleLookup => Set<VehicleLookup>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -29,6 +31,8 @@ namespace GarageManagement.Infrastructure.DbContext
             modelBuilder.Entity<VehicleModelYear>().ToTable("vehicleModelYear", "vhc");
             modelBuilder.Entity<VehicleVariant>().ToTable("vehicleVariant", "vhc");
             modelBuilder.Entity<VehicleBrand>().ToTable("VehicleBrand", "vhc");
+            modelBuilder.Entity<VehicleLookup>().ToTable("VehicleLookup", "vhc");
+
 
 
             // Declare alternate keys first
@@ -104,6 +108,22 @@ namespace GarageManagement.Infrastructure.DbContext
                 .HasForeignKey(vo => vo.VehicleID)
                 .HasPrincipalKey(v => v.VehicleID);
 
+                modelBuilder.Entity<VehicleLookup>()
+                    .HasIndex(v => new { v.LookupType, v.LookupValue })
+                    .IsUnique()
+                    .HasDatabaseName("UQ_LookupType_Value");
+
+            modelBuilder.Entity<VehicleLookup>()
+                .Property(v => v.IsActive)
+                .HasDefaultValue(true);
+
+            modelBuilder.Entity<VehicleLookup>()
+                .Property(v => v.IsDeleted)
+                .HasDefaultValue(false);
+
+            modelBuilder.Entity<VehicleLookup>()
+                .Property(v => v.CreatedAt)
+                .HasDefaultValueSql("getdate()");
 
 
 

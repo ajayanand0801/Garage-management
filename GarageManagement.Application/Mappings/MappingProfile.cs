@@ -55,6 +55,12 @@ namespace GarageManagement.Application.Mappings
             //    .ForMember(dest => dest.Owners, opt => opt.MapFrom(src => src.Owners));
 
             CreateMap<VehicleOwner, VehicleOwnerDto>();
+
+            CreateMap<VehicleLookupDTO, VehicleLookup>()
+     .ForMember(dest => dest.LookupID, opt => opt.MapFrom(src => src.ID));
+
+            CreateMap<VehicleLookup, VehicleLookupDTO>()
+                .ForMember(dest => dest.ID, opt => opt.MapFrom(src => src.LookupID));
         }
     }
 

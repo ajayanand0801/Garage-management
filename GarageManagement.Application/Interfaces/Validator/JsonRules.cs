@@ -59,7 +59,18 @@ namespace GarageManagement.Application.Interfaces.Validator
     }
   }
 }";
-
+        public static string VehicleLookupRule = @"
+{
+  ""lookupID"": { ""type"": ""int"", ""required"": false },
+  ""lookupType"": { ""type"": ""string"", ""required"": true, ""minLength"": 1 },
+  ""lookupValue"": { ""type"": ""string"", ""required"": true, ""minLength"": 1 },
+  ""isActive"": { ""type"": ""bool"", ""required"": false },
+  ""isDeleted"": { ""type"": ""bool"", ""required"": false },
+  ""createdAt"": { ""type"": ""datetime"", ""required"": false },
+  ""createdBy"": { ""type"": ""string"", ""required"": false, ""nullable"": true },
+  ""modifiedAt"": { ""type"": ""datetime"", ""required"": false, ""nullable"": true },
+  ""modifiedBy"": { ""type"": ""string"", ""required"": false, ""nullable"": true }
+}";
     }
 
 }
