@@ -4,6 +4,7 @@ using GarageManagement.Application.Interfaces.ServiceInterface;
 using GarageManagement.Application.Interfaces.Validator;
 using GarageManagement.Application.Mappings;
 using GarageManagement.Application.Services;
+using GarageManagement.Application.Services.ServiceRequest;
 using GarageManagement.Infrastructure;
 using GarageManagement.Infrastructure.Repositories;
 using GarageManagement.Infrastructure.Validator;
@@ -48,6 +49,7 @@ builder.Services.AddScoped<IVehicleLookupRepository, VehicleLookupRepository>();
 // Services
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IVehicleLookupService, VehicleLookupService>();
+builder.Services.AddScoped<IServiceRequest, ServiceRequestService>();
 
 // Validator
 builder.Services.AddScoped<IJsonValidator, JsonValidator>();

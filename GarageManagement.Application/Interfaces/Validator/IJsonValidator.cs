@@ -9,5 +9,6 @@ namespace GarageManagement.Application.Interfaces.Validator
     public interface IJsonValidator
     {
         bool Validate<T>(T requestPayload, string jsonRule, out List<string> errors);
+        bool ValidateJsonPayload<T>(T requestPayload, string jsonRule, out List<string> errors);
     }
 }
