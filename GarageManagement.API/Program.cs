@@ -4,7 +4,7 @@ using GarageManagement.Application.Interfaces.ServiceInterface;
 using GarageManagement.Application.Interfaces.Validator;
 using GarageManagement.Application.Mappings;
 using GarageManagement.Application.Services;
-using GarageManagement.Application.Services.ServiceRequest;
+using GarageManagement.Application.Services.Request;
 using GarageManagement.Infrastructure;
 using GarageManagement.Infrastructure.Repositories;
 using GarageManagement.Infrastructure.Validator;
@@ -45,6 +45,8 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IVehicleLookupRepository, VehicleLookupRepository>();
+builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Services
 builder.Services.AddScoped<IVehicleService, VehicleService>();

@@ -19,7 +19,7 @@ namespace GarageManagement.Application.DTOs
         public long? OrgID { get; set; }
 
        
-        public int? DomainID { get; set; }
+        public long? DomainID { get; set; }
 
         [Required, MinLength(3), MaxLength(50)]
         public string DomainType { get; set; } = null!;
@@ -43,8 +43,7 @@ namespace GarageManagement.Application.DTOs
         
         public DateTime? CreatedAt { get; set; }
 
-        [Required]
-        public CustomerDto Customer { get; set; } = null!;
+        public CustomerDto? Customer { get; set; } = null!;
 
        
         public BookingDto? Booking { get; set; } = null!;

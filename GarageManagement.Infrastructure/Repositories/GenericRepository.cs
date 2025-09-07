@@ -43,9 +43,32 @@ namespace GarageManagement.Infrastructure.Repositories
 
         public async Task<bool> AddAsync(T entity)
         {
-            await _dbSet.AddAsync(entity);
-            return await _context.SaveChangesAsync() > 0;
+            try
+            {
+                await _dbSet.AddAsync(entity);
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Handle specific database update issues (e.g., constraint violations)
+                // Log the error if you have a logging setup
+                Console.Error.WriteLine($"Database update exception: {dbEx.Message}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Handle any other unexpected exceptions
+                Console.Error.WriteLine($"Unexpected error: {ex.Message}");
+                throw; // Optional: rethrow or wrap depending on your error flow
+            }
         }
+
+        //public async Task<bool> AddAsync(T entity)
+        //{
+
+        //    await _dbSet.AddAsync(entity);
+        //    return await _context.SaveChangesAsync() > 0;
+        //}
 
         public async Task<bool> UpdateAsync(T entity)
         {
@@ -60,6 +83,13 @@ namespace GarageManagement.Infrastructure.Repositories
 
             _dbSet.Remove(entity);
             return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> AddTransactionAsync(T entity)
+        {
+            await _dbSet.AddAsync(entity);
+            // Don't save here — defer to UnitOfWork
+            return true;
         }
     }
 

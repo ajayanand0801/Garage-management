@@ -1,4 +1,5 @@
-﻿using GarageManagement.Domain.Entites.Vehicles;
+﻿using GarageManagement.Domain.Entites.Request;
+using GarageManagement.Domain.Entites.Vehicles;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,16 @@ namespace GarageManagement.Infrastructure.DbContext
 
         public DbSet<VehicleLookup> VehicleLookup => Set<VehicleLookup>();
 
+        //ServiceRequest 
+
+        public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+        public DbSet<ServiceRequestDocument> ServiceRequestDocuments => Set<ServiceRequestDocument>();
+        public DbSet<ServiceRequestMetadata> ServiceRequestMetadatas => Set<ServiceRequestMetadata>();
+        public DbSet<ServiceRequestVehicleMetaData> ServiceRequestVehicleMetaData => Set<ServiceRequestVehicleMetaData>();
+        public DbSet<ServiceRequestCustomerMetaData> ServiceRequestCustomerMetaData => Set<ServiceRequestCustomerMetaData>();
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -32,6 +43,12 @@ namespace GarageManagement.Infrastructure.DbContext
             modelBuilder.Entity<VehicleVariant>().ToTable("vehicleVariant", "vhc");
             modelBuilder.Entity<VehicleBrand>().ToTable("VehicleBrand", "vhc");
             modelBuilder.Entity<VehicleLookup>().ToTable("VehicleLookup", "vhc");
+            modelBuilder.Entity<ServiceRequest>().ToTable("ServiceRequest", "dbo");
+            modelBuilder.Entity<ServiceRequestDocument>().ToTable("ServiceRequestDocument", "dbo");
+            modelBuilder.Entity<ServiceRequestMetadata>().ToTable("ServiceRequestMetadata", "dbo");
+            modelBuilder.Entity<ServiceRequestVehicleMetaData>().ToTable("SRVehicleMetaData", "dbo");
+            modelBuilder.Entity<ServiceRequestCustomerMetaData>().ToTable("SRCustomerMetaData", "dbo");
+
 
 
 
@@ -126,7 +143,28 @@ namespace GarageManagement.Infrastructure.DbContext
                 .HasDefaultValueSql("getdate()");
 
 
+            //ServiceRequest 
 
+            modelBuilder.Entity<ServiceRequest>()
+        .HasMany(sr => sr.Documents)
+        .WithOne(doc => doc.ServiceRequest)
+        .HasForeignKey(doc => doc.RequestID);
+
+            modelBuilder.Entity<ServiceRequest>()
+                .HasMany(sr => sr.MetadataEntries)
+                .WithOne(meta => meta.ServiceRequest)
+                .HasForeignKey(meta => meta.RequestID);
+
+            modelBuilder.Entity<ServiceRequest>()
+  .HasMany(sr => sr.vehicleMetaData)
+  .WithOne(doc => doc.ServiceRequest)
+  .HasForeignKey(doc => doc.RequestID);
+
+            modelBuilder.Entity<ServiceRequest>()
+       .HasOne(sr => sr.customerMetaData)
+       .WithOne(c => c.ServiceRequest)
+       .HasForeignKey<ServiceRequestCustomerMetaData>(c => c.RequestID);
+       // or Restrict, based on your logic
         }
     }
 
