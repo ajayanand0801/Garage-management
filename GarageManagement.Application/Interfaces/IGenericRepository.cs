@@ -14,6 +14,7 @@ namespace GarageManagement.Application.Interfaces
         Task<bool> UpdateAsync(T entity);
         Task<bool> DeleteAsync(long id);
         Task<bool> AddTransactionAsync(T entity);
+        Task<bool> SoftDelete(long id);
     }
 
 }

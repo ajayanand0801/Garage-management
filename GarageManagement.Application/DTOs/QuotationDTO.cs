@@ -13,16 +13,14 @@ namespace GarageManagement.Application.DTOs
         public long? QuotationID { get; set; }
         public string? QuotationNo { get; set; }
 
-       
-
         [ Range(0, double.MaxValue)]
         public decimal? EstimatedTotal { get; set; }
 
         [ MinLength(3), MaxLength(3)]
         public string? Currency { get; set; } = null!;
 
-        [ Range(0, double.MaxValue)]
-        public decimal? Discount { get; set; }
+        [Range(0, double.MaxValue)]
+        public decimal? Discount { get; set; } = 0;
 
         [ Range(0, double.MaxValue)]
         public decimal ?Tax { get; set; }

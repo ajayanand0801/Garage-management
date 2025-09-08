@@ -91,6 +91,67 @@ namespace GarageManagement.Infrastructure.Repositories
             // Don't save here — defer to UnitOfWork
             return true;
         }
+
+        //public async Task<bool> SoftDelete(long id)
+        //{
+        //    var entity = await GetByIdAsync(id);
+        //    if (entity == null) return false;
+
+        //    var propertyInfo = typeof(T).GetProperty("IsActive");
+        //    if (propertyInfo == null || propertyInfo.PropertyType != typeof(bool))
+        //        throw new InvalidOperationException("Entity does not support soft delete (missing IsDeleted property).");
+
+        //    propertyInfo.SetValue(entity, false);
+        //    _dbSet.Update(entity);
+        //    return await _context.SaveChangesAsync() > 0;
+        //}
+
+        public async Task<bool> SoftDelete(long id)
+        {
+            // Include child entities
+            IQueryable<T> query = _dbSet;
+
+            // Load navigation properties dynamically
+            var navigationProperties = _context.Model.FindEntityType(typeof(T))?
+                .GetNavigations()
+                .Where(n => n.IsCollection);
+
+            foreach (var nav in navigationProperties ?? Enumerable.Empty<Microsoft.EntityFrameworkCore.Metadata.INavigation>())
+            {
+                query = query.Include(nav.Name);
+            }
+
+            var entity = await query.FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id);
+            if (entity == null) return false;
+
+            // Set IsActive = false on parent
+            var propertyInfo = typeof(T).GetProperty("IsActive");
+            if (propertyInfo == null || propertyInfo.PropertyType != typeof(bool))
+                throw new InvalidOperationException("Entity does not support soft delete (missing IsActive property).");
+
+            propertyInfo.SetValue(entity, false);
+
+            // Deactivate child entities
+            foreach (var nav in navigationProperties ?? Enumerable.Empty<Microsoft.EntityFrameworkCore.Metadata.INavigation>())
+            {
+                var childCollection = typeof(T).GetProperty(nav.Name)?.GetValue(entity) as IEnumerable<object>;
+                if (childCollection == null) continue;
+
+                foreach (var child in childCollection)
+                {
+                    var childIsActiveProp = child.GetType().GetProperty("IsActive");
+                    if (childIsActiveProp != null && childIsActiveProp.PropertyType == typeof(bool))
+                    {
+                        childIsActiveProp.SetValue(child, false);
+                    }
+                }
+            }
+
+            _dbSet.Update(entity);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+
     }
 
 

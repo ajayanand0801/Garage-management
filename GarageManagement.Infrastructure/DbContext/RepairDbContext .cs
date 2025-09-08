@@ -1,4 +1,5 @@
-﻿using GarageManagement.Domain.Entites.Request;
+﻿using GarageManagement.Domain.Entites.Quotation;
+using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -30,6 +31,9 @@ namespace GarageManagement.Infrastructure.DbContext
         public DbSet<ServiceRequestVehicleMetaData> ServiceRequestVehicleMetaData => Set<ServiceRequestVehicleMetaData>();
         public DbSet<ServiceRequestCustomerMetaData> ServiceRequestCustomerMetaData => Set<ServiceRequestCustomerMetaData>();
 
+        //Quotation
+        public DbSet<Quotation> Quotations=> Set<Quotation>();
+        public DbSet<QuotationItem> QuotationItem => Set<QuotationItem>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -48,7 +52,8 @@ namespace GarageManagement.Infrastructure.DbContext
             modelBuilder.Entity<ServiceRequestMetadata>().ToTable("ServiceRequestMetadata", "dbo");
             modelBuilder.Entity<ServiceRequestVehicleMetaData>().ToTable("SRVehicleMetaData", "dbo");
             modelBuilder.Entity<ServiceRequestCustomerMetaData>().ToTable("SRCustomerMetaData", "dbo");
-
+            modelBuilder.Entity<Quotation>().ToTable("Quotation", "rpa");
+            modelBuilder.Entity<QuotationItem>().ToTable("QuotationItem", "rpa");
 
 
 
@@ -164,7 +169,58 @@ namespace GarageManagement.Infrastructure.DbContext
        .HasOne(sr => sr.customerMetaData)
        .WithOne(c => c.ServiceRequest)
        .HasForeignKey<ServiceRequestCustomerMetaData>(c => c.RequestID);
-       // or Restrict, based on your logic
+            // or Restrict, based on your logic
+
+
+            //Quotaion 
+
+            modelBuilder.Entity<Quotation>(entity =>
+            {
+               //entity.HasKey(q => q.QuotationId);
+
+                entity.Property(q => q.QuoteGuid)
+                      .HasDefaultValueSql("NEWID()");
+
+                entity.Property(q => q.Status)
+                      .HasMaxLength(50)
+                      .HasDefaultValue("pending");
+
+                entity.Property(q => q.CurrencyCode)
+                      .HasColumnType("char(3)")
+                      .IsRequired();
+
+                // One-to-many relationship with QuotationItem
+                //entity.HasMany(q => q.QuotationItems)
+                //      .WithOne(qi => qi.Quotation)
+                //      .HasForeignKey(qi => qi.QuotationID)
+                //      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // QuotationItem configuration
+            modelBuilder.Entity<QuotationItem>(entity =>
+            {
+                //entity.HasKey(qi => qi.ItemGguid);
+
+                entity.Property(qi => qi.Description)
+                      .IsRequired();
+
+                entity.Property(qi => qi.CurrencyCode)
+                      .HasMaxLength(20);
+
+                entity.Property(qi => qi.ItemType)
+                      .HasMaxLength(50);
+
+                entity.Property(qi => qi.Code)
+                      .HasMaxLength(50);
+
+                entity.Property(qi => qi.Quantity)
+                      .IsRequired();
+
+                entity.Property(qi => qi.NetTotal)
+                      .HasComputedColumnSql("([TotalPrice] - ISNULL([DiscountAmount], 0) + ISNULL([TaxAmount], 0))", stored: true);
+
+                entity.HasCheckConstraint("CK_QuotationItem_Quantity_Positive", "[Quantity] > 0");
+            });
         }
     }
 

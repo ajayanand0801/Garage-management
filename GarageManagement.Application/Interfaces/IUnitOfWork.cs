@@ -1,4 +1,5 @@
-﻿using GarageManagement.Domain.Entites.Request;
+﻿using GarageManagement.Domain.Entites.Quotation;
+using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace GarageManagement.Application.Interfaces
         IGenericRepository<VehicleLookup> VehicleLookup { get; }
         IGenericRepository<ServiceRequestVehicleMetaData> SRVehicleMetaData { get; }
         IGenericRepository<ServiceRequestCustomerMetaData> SRCustomerMetaData { get; }
+        IGenericRepository<Quotation> Quotation { get; }
+        IGenericRepository<QuotationItem> QuotationItem { get; }
         Task BeginTransactionAsync();
         Task CommitAsync();
         Task RollbackAsync();
