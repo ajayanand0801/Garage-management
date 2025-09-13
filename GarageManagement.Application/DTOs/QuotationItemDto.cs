@@ -13,7 +13,10 @@ namespace GarageManagement.Application.DTOs
         public long? ItemID { get; set; } = 0;
 
         [Required, MinLength(2)]
-        public string PartName { get; set; } = null!;
+        public string Name { get; set; } = null!;
+
+        public Guid ItemGuid { get; set; }
+
 
         [Required, MinLength(2)]
         public string PartNumber { get; set; } = null!;

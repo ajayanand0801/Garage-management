@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.DTOs;
+﻿using ComponentManagement.PaginationUtility;
+using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces.ServiceInterface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -112,6 +113,54 @@ namespace GarageManagement.API.Controllers
                 return NotFound(new { message = $"Quotation with ID {id} not found or already deleted." });
 
             return Ok(new { success = result });
+        }
+
+
+        [HttpPost("paginated")]
+        public async Task<IActionResult> GetAllQuotations([FromBody] PaginationRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null)
+                return BadRequest("Invalid request payload.");
+
+            var paginatedResult = await _quotationService.GetAllQuotationsAsync(request, cancellationToken);
+
+            return Ok(paginatedResult);
+        }
+
+        /// <summary>
+        /// Update quotation items by Quote ID
+        /// </summary>
+        [HttpPut("{quoteId:long}/items")]
+        public async Task<IActionResult> UpdateQuotationItems(long quoteId, [FromBody] List<QuotationItemDto> quotationItems)
+        {
+            if (quotationItems == null || !quotationItems.Any())
+                return BadRequest(new { message = "Quotation items list cannot be empty." });
+
+            try
+            {
+                var result = await _quotationService.UpdateQuotationItemByQuoteIDAsync(quoteId, quotationItems);
+
+                if (!result)
+                    return NotFound(new { message = $"No quotation found for Quote ID {quoteId} or items could not be updated." });
+
+                return Ok(new { success = true, message = "Quotation items updated successfully." });
+            }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new
+                {
+                    message = "Validation failed",
+                    errors = ex.Message.Split(';', StringSplitOptions.TrimEntries)
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "An unexpected error occurred.",
+                    error = ex.Message
+                });
+            }
         }
     }
 }

@@ -207,7 +207,10 @@ namespace GarageManagement.Application.Mappings
             // Entity to DTO
             CreateMap<Quotation, QuotationDTO>()
 
-                 .ForMember(dest => dest.QuotationID, opt => opt.Ignore())
+                 .ForMember(dest => dest.QuotationID, opt => opt.MapFrom(src => src.QuotationId))
+                 .ForMember(dest => dest.QuotationNo, opt => opt.MapFrom(src => src.ReferenceNo))
+                 .ForMember(dest => dest.QuoteGuid, opt => opt.MapFrom(src => src.QuoteGuid))
+                  .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
                 //.ForMember(dest => dest.QuotationID, opt => opt.MapFrom(src => src.QuotationId))
                 .ForMember(dest => dest.EstimatedTotal, opt => opt.MapFrom(src => src.TotalAmount))
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.CurrencyCode))
@@ -219,36 +222,146 @@ namespace GarageManagement.Application.Mappings
                 .ForMember(dest => dest.QuotationItems, opt => opt.MapFrom(src => src.QuotationItems));
             //.ForAllOtherMembers(opt => opt.Ignore());
 
+            //CreateMap<QuotationItemDto, QuotationItem>()
+            //.ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description ?? string.Empty))
+            // .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name ?? string.Empty))
+            //.ForMember(dest => dest.ItemType, opt => opt.MapFrom(src => src.ItemType ?? string.Empty))
+            //.ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.code ?? string.Empty))
+            //.ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity>0
+            //))
+            //.ForMember(dest => dest.Hours, opt => opt.MapFrom(src => src.Hours))
+            //.ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice)).ReverseMap()
+            //.ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice)).ReverseMap()
+            //.ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount ?? 0))
+            //.ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount ?? 0))
+            //.ForMember(dest => dest.NetTotal, opt => opt.MapFrom(src => src.NetTotal ?? 0))
+            //.ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt)).ReverseMap()
+            //.ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy)).ReverseMap()
+            //.ForMember(dest => dest.IsOptional, opt => opt.MapFrom(src => src.IsOptional ?? false))
+            //.ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => src.IsApproved ?? false))
+            //.ForMember(dest => dest.Quotation, opt => opt.Ignore()) // You can handle this manually
+            //.ForMember(dest => dest.ItemGguid, opt => opt.Ignore()) // Auto-generated in DB or manually set
+            //.ForMember(dest => dest.QuotationID, opt => opt.Ignore()); // Set manually during save
+
             CreateMap<QuotationItemDto, QuotationItem>()
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description ?? string.Empty))
-             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.PartName ?? string.Empty))
-            .ForMember(dest => dest.ItemType, opt => opt.MapFrom(src => src.ItemType ?? string.Empty))
-            .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.code ?? string.Empty))
-            .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity>0
-            ))
-            .ForMember(dest => dest.Hours, opt => opt.MapFrom(src => src.Hours))
-            .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
-            .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
-            .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount ?? 0))
-            .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount ?? 0))
-            .ForMember(dest => dest.NetTotal, opt => opt.MapFrom(src => src.NetTotal ?? 0))
-            .ForMember(dest => dest.IsOptional, opt => opt.MapFrom(src => src.IsOptional ?? false))
-            .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => src.IsApproved ?? false))
-            .ForMember(dest => dest.Quotation, opt => opt.Ignore()) // You can handle this manually
-            .ForMember(dest => dest.ItemGguid, opt => opt.Ignore()) // Auto-generated in DB or manually set
-            .ForMember(dest => dest.QuotationID, opt => opt.Ignore()); // Set manually during save
+           .ForMember(dest => dest.Id, opt => opt.Ignore())
+           .ForMember(dest => dest.QuotationID, opt => opt.Ignore())
+           .ForMember(dest => dest.Quotation, opt => opt.Ignore())
+           .ForMember(dest => dest.ItemGguid, opt => opt.Ignore())
+           .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Description ?? string.Empty))
+           .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description ?? string.Empty))
+           .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.code ?? string.Empty))
+           .ForMember(dest => dest.ItemType, opt => opt.MapFrom(src => src.ItemType ?? string.Empty))
+           .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+           .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
+           .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
+           .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount ?? 0))
+           .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount ?? 0))
+           .ForMember(dest => dest.NetTotal, opt => opt.MapFrom(src => src.NetTotal ?? 0))
+           .ForMember(dest => dest.IsOptional, opt => opt.MapFrom(src => src.IsOptional ?? false))
+           .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => src.IsApproved ?? false))
+           // ignore audit/created/modified that you set manually
+           .ForMember(dest => dest.CreatedAt, opt => opt.Condition((src, dest, srcMember) => false))
+            .ForMember(dest => dest.CreatedBy, opt => opt.Condition((src, dest, srcMember) => false))
 
 
-            // Optional: Reverse mapping
+          // .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+           //.ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+           //.ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+
+          // .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
+
+           .ForMember(dest => dest.ModifiedAt, opt => opt.Ignore())
+           .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
+           ;
+
+            // Entity ➡️ DTO
             CreateMap<QuotationItem, QuotationItemDto>()
+                .ForMember(dest => dest.ItemID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.ItemGuid, opt => opt.MapFrom(src => src.ItemGguid))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.PartNumber, opt => opt.MapFrom(src => src.Code))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(dest => dest.ItemType, opt => opt.MapFrom(src => src.ItemType))
                 .ForMember(dest => dest.code, opt => opt.MapFrom(src => src.Code))
+                // .ForMember(dest => dest.cu, opt => opt.MapFrom(src => src.CurrencyCode))
+                .ForMember(dest => dest.Hours, opt => opt.MapFrom(src => src.Hours ?? 0))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
+                .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
+                .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount ?? 0))
+                .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount ?? 0))
+                .ForMember(dest => dest.NetTotal, opt => opt.MapFrom(src => src.NetTotal))
                 .ForMember(dest => dest.IsOptional, opt => opt.MapFrom(src => src.IsOptional))
                 .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => src.IsApproved))
-                .ForMember(dest => dest.NetTotal, opt => opt.MapFrom(src => src.NetTotal))
-                .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount))
-                .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount))
-                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
-                .ForMember(dest => dest.PartName, opt => opt.MapFrom(src => src.Name ?? string.Empty));
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.ModifiedBy, opt => opt.MapFrom(src => src.ModifiedBy))
+                .ForMember(dest => dest.ModifiedAt, opt => opt.MapFrom(src => src.ModifiedAt))
+                 .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+                //.ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
+            // .ForAllOtherMembers(opt => opt.Ignore());
+
+            CreateMap<QuotationItemDto, QuotationItem>()
+   //.ForAllMembers(opt => opt.Condition((src, dest, srcMember) =>
+   //{
+   //    // Skip nulls and empty strings
+   //    if (srcMember == null) return false;
+   //    if (srcMember is string str) return !string.IsNullOrWhiteSpace(str);
+   //    return true;
+   //}))
+   .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ItemID))
+    .ForMember(dest => dest.ItemGguid, opt => opt.MapFrom(src => src.ItemGuid))
+    .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.PartNumber ?? string.Empty))
+    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Description))
+    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description ?? string.Empty))
+    .ForMember(dest => dest.ItemType, opt => opt.MapFrom(src => src.ItemType ?? string.Empty))
+    .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
+    .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
+    .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
+    .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount ?? 0))
+    .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount ?? 0))
+    .ForMember(dest => dest.NetTotal, opt => opt.MapFrom(src => src.NetTotal ?? 0))
+    .ForMember(dest => dest.IsOptional, opt => opt.MapFrom(src => src.IsOptional ?? false))
+    .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => src.IsApproved ?? false))
+   
+    .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src =>
+        src.CreatedAt.HasValue ? src.CreatedAt.Value : DateTime.UtcNow))
+    .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
+    .ForMember(dest => dest.ModifiedAt, opt => opt.MapFrom(src => src.ModifiedAt))
+    .ForMember(dest => dest.ModifiedBy, opt => opt.MapFrom(src => src.ModifiedBy))
+    .ForMember(dest => dest.QuotationID, opt => opt.Ignore())
+     .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+    .ForMember(dest => dest.Quotation, opt => opt.Ignore());
+
+
+
+            // DTO ➡️ Entity (Only map values if they are not null / empty)
+            // Optional: Reverse mapping
+            //CreateMap<QuotationItem, QuotationItemDto>()
+            //     .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
+            //    .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
+            //    .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount ?? 0))
+            //    .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount ?? 0))
+            //   // .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
+            //    //.ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            //    .ForMember(dest => dest.code, opt => opt.MapFrom(src => src.Code))
+            //    // .ForMember(dest => dest.ItemGuid, opt => opt.MapFrom(src => src.ItemGguid))
+            //    .ForMember(dest => dest.IsOptional, opt => opt.MapFrom(src => src.IsOptional))
+            //    .ForMember(dest => dest.IsApproved, opt => opt.MapFrom(src => src.IsApproved))
+            //    .ForMember(dest => dest.NetTotal, opt => opt.MapFrom(src => src.NetTotal))
+            //    .ForMember(dest => dest.DiscountAmount, opt => opt.MapFrom(src => src.DiscountAmount))
+            //    .ForMember(dest => dest.TaxAmount, opt => opt.MapFrom(src => src.TaxAmount))
+            //    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            //  //  .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            ////.ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
+            //.ForMember(dest => dest.ItemID, opt => opt.MapFrom(src => src.Id)) // Assuming BaseEntity has Id
+            //    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name)) // mapping description as part name
+            //    .ForMember(dest => dest.PartNumber, opt => opt.MapFrom(src => src.Code))
+            //    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            //    .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
+            ////.ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name ?? string.Empty));
 
             ///////////////////////////////////////
             //CreateMap<QuotationItemDto, QuotationItem>()
@@ -257,16 +370,16 @@ namespace GarageManagement.Application.Mappings
             //.ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
             //.ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
             //.ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice)).ReverseMap();
-            //            //.ForAllOtherMembers(opt => opt.Ignore()); // ignore unused fields in the entity
+            ////.ForAllOtherMembers(opt => opt.Ignore()); // ignore unused fields in the entity
 
-            CreateMap<QuotationItem, QuotationItemDto>()
-                .ForMember(dest => dest.ItemID, opt => opt.MapFrom(src => src.Id)) // Assuming BaseEntity has Id
-                .ForMember(dest => dest.PartName, opt => opt.MapFrom(src => src.Description)) // mapping description as part name
-                .ForMember(dest => dest.PartNumber, opt => opt.MapFrom(src => src.Code))
-                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
-                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
-                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
-                .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice)).ReverseMap();
+            //CreateMap<QuotationItem, QuotationItemDto>()
+            //    .ForMember(dest => dest.ItemID, opt => opt.MapFrom(src => src.Id)) // Assuming BaseEntity has Id
+            //    .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name)) // mapping description as part name
+            //    .ForMember(dest => dest.PartNumber, opt => opt.MapFrom(src => src.Code)).ReverseMap()
+            //    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description)).ReverseMap()
+            //    .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity)).ReverseMap()
+            //    .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice)).ReverseMap()
+            //    .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice)).ReverseMap();
             // .ForAllOtherMembers(opt => opt.Ignore()); // ignore unused fields in the DTO
 
 

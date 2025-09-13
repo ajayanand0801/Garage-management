@@ -9,5 +9,6 @@ namespace GarageManagement.Application.Interfaces.Mapper
     public interface IMapperUtility
     {
         TDestination Map<TSource, TDestination>(TSource source);
+        TDestination Map<TSource, TDestination>(TSource source, TDestination destination);
     }
 }

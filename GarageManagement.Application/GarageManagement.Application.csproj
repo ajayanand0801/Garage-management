@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\ComponentManagement.PaginationUtility\ComponentManagement.PaginationUtility.csproj" />
     <ProjectReference Include="..\GarageManagement.Domain\GarageManagement.Domain.csproj" />
   </ItemGroup>
 

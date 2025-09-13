@@ -17,6 +17,8 @@ namespace GarageManagement.Application.Interfaces
        
         IQueryable<Quotation> GetAll();
 
+        IQueryable<QuotationItem> GetQuotationByQuoteId(long quoteId);
+
 
     }
 }

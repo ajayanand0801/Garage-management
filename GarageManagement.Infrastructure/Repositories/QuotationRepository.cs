@@ -27,11 +27,20 @@ namespace GarageManagement.Infrastructure.Repositories
                            .Where(q => !q.IsDeleted && q.IsActive);
         }
 
+
+        
         public IQueryable<Quotation> GetById(long id)
         {
             return _context.Quotations
-                           .Include(q => q.QuotationItems)
+                           .Include(q => q.QuotationItems.Where(item => item.IsActive))
                            .Where(q => q.Id == id && !q.IsDeleted && q.IsActive);
+        }
+
+        public IQueryable<QuotationItem> GetQuotationByQuoteId(long quoteId)
+        {
+            return _context.QuotationItem
+                           .Where(q => q.QuotationID == quoteId && !q.IsDeleted && q.IsActive);
+                           
         }
     }
 }

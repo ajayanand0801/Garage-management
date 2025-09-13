@@ -12,6 +12,7 @@ namespace GarageManagement.Application.DTOs
         
         public long? QuotationID { get; set; }
         public string? QuotationNo { get; set; }
+        public string? QuoteGuid { get; set; }
 
         [ Range(0, double.MaxValue)]
         public decimal? EstimatedTotal { get; set; }
@@ -31,7 +32,7 @@ namespace GarageManagement.Application.DTOs
         
         public string? Status { get; set; } = null!;
 
-     
+        public string? CreatedBy { get; set; } = null;
         public DateTime? CreatedAt { get; set; }
         public List<QuotationItemDto>? QuotationItems { get; set; } = new();
 

@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.DTOs;
+﻿using ComponentManagement.PaginationUtility;
+using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces;
 using GarageManagement.Application.Interfaces.Mapper;
 using GarageManagement.Application.Interfaces.ServiceInterface;
@@ -21,7 +22,8 @@ namespace GarageManagement.Application.Services.Quotations
         private readonly IJsonValidator _jsonValidator;
         private readonly IMapperUtility _mapperUtility;
         private readonly IUnitOfWork _unitOfWork;
-      //  private readonly string _jsonSchema = JsonRules.QuotationSchema; // Assume this exists
+        private readonly IPaginationService<Quotation> _paginationService;
+        //  private readonly string _jsonSchema = JsonRules.QuotationSchema; // Assume this exists
 
 
         public QuotationService(
@@ -29,13 +31,15 @@ namespace GarageManagement.Application.Services.Quotations
             IQuotationRepository quotationRepository,
             IJsonValidator jsonValidator,
             IMapperUtility mapperUtility,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IPaginationService<Quotation> paginationService)
         {
             _quotationGenericRepo = quotationGenericRepo;
             _quotationRepository = quotationRepository;
              _jsonValidator = jsonValidator;
             _mapperUtility = mapperUtility;
             _unitOfWork = unitOfWork;
+            _paginationService = paginationService;
         }
         public async Task<bool> CreateQuotationAsync(long requestID,QuotationDTO quotationRequest)
         {
@@ -86,6 +90,27 @@ namespace GarageManagement.Application.Services.Quotations
             throw new NotImplementedException();
         }
 
+        public async Task<PaginationResult<QuotationDTO>> GetAllQuotationsAsync(PaginationRequest request, CancellationToken cancellationToken)
+        {
+            IQueryable<Quotation> query = _quotationRepository.GetAll();
+
+            var pagedResult = await _paginationService.PaginateAsync(
+                query,
+                request,
+                cancellationToken);
+
+            // Map PaginationResult<Quotation> to PaginationResult<QuotationDTO>
+            var mappedItems = pagedResult.Items.Select(q => _mapperUtility.Map<Quotation, QuotationDTO>(q)).ToList();
+
+            var result = new PaginationResult<QuotationDTO>
+            {
+                Items = mappedItems,
+                TotalCount = pagedResult.TotalCount
+            };
+
+            return result;
+        }
+
         public async Task<QuotationDTO?> GetQuotationByIdAsync(long id)
         {
             var result = await Task.Run(() => _quotationRepository.GetById(id).FirstOrDefault());
@@ -102,6 +127,61 @@ namespace GarageManagement.Application.Services.Quotations
         {
             throw new NotImplementedException();
         }
+
+        public async Task<bool> UpdateQuotationItemByQuoteIDAsync(long quoteId, List<QuotationItemDto> quotationItems)
+        {
+            // Load existing items from DB with tracking
+            var existingItems = _quotationRepository
+                .GetQuotationByQuoteId(quoteId)
+                .ToList();  // EF Core tracked entities
+
+            if (!existingItems.Any() && !quotationItems.Any())
+                return false; // Nothing to update
+
+            var existingDict = existingItems
+                .Where(e => e.Id != 0)
+                .ToDictionary(e => e.Id);
+
+            foreach (var dto in quotationItems)
+            {
+                if (dto.ItemID.HasValue && dto.ItemID.Value > 0
+                    && existingDict.TryGetValue(dto.ItemID.Value, out var existingEntity))
+                {
+                    // Map only properties from dto to the existing entity
+                    _mapperUtility.Map(dto, existingEntity);  // Don't reassign it
+
+                    // Set audit fields
+                    existingEntity.ModifiedAt = DateTime.UtcNow;
+                    existingEntity.ModifiedBy = "System";
+
+                    // No need to call AddTransactionAsync — entity is already tracked
+                }
+                else
+                {
+                    // New item — optionally uncomment if you want to support adding
+
+                    var newEntity = _mapperUtility.Map<QuotationItemDto, QuotationItem>(dto);
+                    newEntity.QuotationID = quoteId;
+                    newEntity.ItemGguid = Guid.NewGuid();
+                    newEntity.CreatedAt = DateTime.UtcNow;
+                    newEntity.CreatedBy = "System";
+                    newEntity.ModifiedAt = DateTime.UtcNow;
+                    newEntity.ModifiedBy = "System";
+                    newEntity.IsActive = true;
+                    newEntity.IsDeleted = false;
+
+                    await _unitOfWork.QuotationItem.AddTransactionAsync(newEntity);
+
+                }
+            }
+
+            // Commit once, after all updates
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+
+
 
         public bool ValidateQuotation(QuotationDTO quotationDto, out List<string> errors)
         {

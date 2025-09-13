@@ -1,3 +1,4 @@
+using ComponentManagement.PaginationUtility;
 using GarageManagement.Application.Interfaces;
 using GarageManagement.Application.Interfaces.Mapper;
 using GarageManagement.Application.Interfaces.ServiceInterface;
@@ -52,6 +53,7 @@ builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Services
+builder.Services.AddScoped(typeof(IPaginationService<>), typeof(PaginationService<>));
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IVehicleLookupService, VehicleLookupService>();
 builder.Services.AddScoped<IServiceRequest, ServiceRequestService>();
