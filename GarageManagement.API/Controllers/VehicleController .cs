@@ -47,6 +47,17 @@ namespace GarageManagement.API.Controllers
             var result = await _service.DeleteVehicleAsync(id);
             return result ? Ok() : NotFound();
         }
+
+        [HttpGet("details/{vin}")]
+        public async Task<IActionResult> VehicleDetailsByVin(string vin)
+        {
+            var result = await _service.GetVehicleBYVin(vin);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
     }
 
 }

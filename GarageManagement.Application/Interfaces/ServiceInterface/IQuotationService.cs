@@ -22,6 +22,8 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
 
         Task<PaginationResult<QuotationDTO>> GetAllQuotationsAsync(PaginationRequest request, CancellationToken cancellationToken);
 
+        Task<bool> DeleteQuotationItemAsync(long quotationId, long id); // Soft delete
+
 
         // Optionally, methods for items
         //  Task<bool> AddQuotationItemAsync(long quotationId, QuotationItemDTO itemDto);

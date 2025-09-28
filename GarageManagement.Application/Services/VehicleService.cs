@@ -6,6 +6,7 @@ using GarageManagement.Application.Interfaces.Validator;
 using GarageManagement.Domain.Entites.Vehicles;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -135,7 +136,14 @@ namespace GarageManagement.Application.Services
             return true;
         }
 
-
+        public async Task<VinSearchResponse> GetVehicleBYVin(string vin)
+        {
+            var vinresponse = await _vehicleRepository.GetVinSearchResponseAsync(vin);
+            if (vinresponse != null)
+                 vinresponse.DecodeStatus = "success";
+            
+            return vinresponse;
+        }
     }
 
 }

@@ -13,6 +13,7 @@ namespace GarageManagement.Application.Interfaces
         Task<VehicleDto?> GetVehicleWithDetailsAsync(long vehicleID);
         Task<IEnumerable<Vehicle>> GetAllVehiclesWithOwnersAsync();
         Task<long> GetMaxVehicleIdAsync();
+        Task<VinSearchResponse?> GetVinSearchResponseAsync(string vin);
     }
 
 }

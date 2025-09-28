@@ -85,6 +85,16 @@ namespace GarageManagement.Application.Services.Quotations
             return result;
         }
 
+        public async Task<bool> DeleteQuotationItemAsync(long quotationId, long id)
+        {
+           // _quotationGenericRepo.get
+            var result = await Task.Run(() => _quotationGenericRepo.SoftDelete(id));
+
+            return result;
+
+
+        }
+
         public Task<IEnumerable<QuotationDTO>> GetAllQuotationsAsync()
         {
             throw new NotImplementedException();
