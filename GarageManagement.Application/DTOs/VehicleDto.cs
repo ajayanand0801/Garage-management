@@ -44,12 +44,17 @@ namespace GarageManagement.Application.DTOs
 
     public class VehicleOwnerDto
     {
+        public long? Id { get; set; }
+        public long OwnerID { get; set; }
+        public int Type { get; set; }
         public string OwnerName { get; set; }
+        public string? TradeLicenseNo { get; set; }
         public string ContactNumber { get; set; }
         public string Email { get; set; }
         public string Address { get; set; }
         public DateTime OwnershipStartDate { get; set; }
         public DateTime? OwnershipEndDate { get; set; }
+       
     }
 
 }

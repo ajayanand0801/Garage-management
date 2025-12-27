@@ -97,7 +97,8 @@ namespace ComponentManagement.PaginationUtility
 
                 Expression? innerExpr = null;
 
-                switch (filter.Operation?.ToLowerInvariant())
+                var operation = NormalizeOperation(filter.Operation);
+                switch (operation)
                 {
                     case "eq":
                         innerExpr = Expression.Equal(nestedMemberExpr, constant);
@@ -155,7 +156,8 @@ namespace ComponentManagement.PaginationUtility
                 if (Nullable.GetUnderlyingType(propType) != null)
                     memberExpr = Expression.Convert(member, nonNullableType);
 
-                switch (filter.Operation?.ToLowerInvariant())
+                var operation = NormalizeOperation(filter.Operation);
+                switch (operation)
                 {
                     case "eq":
                         return Expression.Equal(memberExpr, constant);
@@ -202,8 +204,41 @@ namespace ComponentManagement.PaginationUtility
                         JsonValueKind.String when targetType == typeof(string) => je.GetString(),
                         JsonValueKind.True or JsonValueKind.False when targetType == typeof(bool) => je.GetBoolean(),
                         JsonValueKind.String when targetType == typeof(DateTime) => je.GetDateTime(),
+                        JsonValueKind.String when targetType == typeof(int) || targetType == typeof(int?) => int.Parse(je.GetString()!),
+                        JsonValueKind.String when targetType == typeof(long) || targetType == typeof(long?) => long.Parse(je.GetString()!),
+                        JsonValueKind.String when targetType == typeof(decimal) || targetType == typeof(decimal?) => decimal.Parse(je.GetString()!),
                         _ => Convert.ChangeType(je.ToString(), targetType)
                     };
+                }
+
+                // Handle string to numeric conversions
+                if (value is string strValue)
+                {
+                    if (targetType == typeof(long) || targetType == typeof(long?))
+                    {
+                        if (long.TryParse(strValue, out var longVal))
+                            return longVal;
+                    }
+                    else if (targetType == typeof(int) || targetType == typeof(int?))
+                    {
+                        if (int.TryParse(strValue, out var intVal))
+                            return intVal;
+                    }
+                    else if (targetType == typeof(decimal) || targetType == typeof(decimal?))
+                    {
+                        if (decimal.TryParse(strValue, out var decVal))
+                            return decVal;
+                    }
+                    else if (targetType == typeof(DateTime) || targetType == typeof(DateTime?))
+                    {
+                        if (DateTime.TryParse(strValue, out var dateVal))
+                            return dateVal;
+                    }
+                    else if (targetType == typeof(bool) || targetType == typeof(bool?))
+                    {
+                        if (bool.TryParse(strValue, out var boolVal))
+                            return boolVal;
+                    }
                 }
 
                 // If it's already a primitive / string etc.
@@ -213,6 +248,26 @@ namespace ComponentManagement.PaginationUtility
             {
                 return null;
             }
+        }
+
+        private static string NormalizeOperation(string? operation)
+        {
+            if (string.IsNullOrWhiteSpace(operation))
+                return "eq";
+
+            var normalized = operation.ToLowerInvariant().Trim();
+            
+            // Map common aliases to standard operations
+            return normalized switch
+            {
+                "equal" or "equals" or "==" => "eq",
+                "notequal" or "notequals" or "!=" or "<>" => "ne",
+                "greaterthan" or ">" => "gt",
+                "lessthan" or "<" => "lt",
+                "greaterthanorequal" or ">=" => "gte",
+                "lessthanorequal" or "<=" => "lte",
+                _ => normalized
+            };
         }
     }
 }

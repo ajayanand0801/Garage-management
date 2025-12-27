@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using GarageManagement.Application.DTOs;
+using GarageManagement.Domain.Entites;
 using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
@@ -34,7 +35,7 @@ namespace GarageManagement.Application.Mappings
                     {
                         foreach (var owner in dest.Owners)
                         {
-                            owner.VehicleID = src.VehicleID.Value;
+                           owner.VehicleID = src.VehicleID.HasValue? src.VehicleID.Value:0;
                             owner.VehicleVIN = src.VIN;
                         }
                     }
@@ -47,7 +48,7 @@ namespace GarageManagement.Application.Mappings
             .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Brand))
             .ForMember(dest => dest.Model, opt => opt.MapFrom(src => src.Model))
             .ForMember(dest => dest.ModelYear, opt => opt.MapFrom(src => src.ModelYear))
-            .ForMember(dest => dest.Owners, opt => opt.MapFrom(src => src.Owners));
+             .ForMember(dest => dest.Owners, opt => opt.MapFrom(src => src.Owners));
 
             // Optional reverse mapping (Entity -> DTO)
             //CreateMap<Vehicle, VehicleDto>()
@@ -382,6 +383,32 @@ namespace GarageManagement.Application.Mappings
             //    .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice)).ReverseMap();
             // .ForAllOtherMembers(opt => opt.Ignore()); // ignore unused fields in the DTO
 
+            //Customer mappings
+            // CrmCustomerDTO -> Customer
+            CreateMap<CrmCustomerDTO, Customer>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.CustomerGuid, opt => opt.MapFrom(src => src.CustomerGuid ?? Guid.NewGuid()))
+                .ForMember(dest => dest.TenantID, opt => opt.MapFrom(src => src.TenantId ?? 0))
+                .ForMember(dest => dest.OrgID, opt => opt.MapFrom(src => src.OrgId ?? 0))
+                .ForMember(dest => dest.TaxID, opt => opt.MapFrom(src => src.TaxId))
+                .ForMember(dest => dest.ReferralSourceID, opt => opt.MapFrom(src => src.ReferralSourceId))
+                .ForMember(dest => dest.CountryID, opt => opt.MapFrom(src => src.CountryId))
+                .ForMember(dest => dest.StateID, opt => opt.MapFrom(src => src.StateId))
+                .ForMember(dest => dest.CityID, opt => opt.MapFrom(src => src.CityId))
+                .ForMember(dest => dest.CreatedAt, opt => opt.Condition((src, dest, srcMember) => srcMember != default(DateTime)))
+                .ForMember(dest => dest.ModifiedAt, opt => opt.MapFrom(src => src.ModifiedAt));
+
+            // Customer -> CrmCustomerDTO
+            CreateMap<Customer, CrmCustomerDTO>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.CustomerGuid, opt => opt.MapFrom(src => src.CustomerGuid))
+                .ForMember(dest => dest.TenantId, opt => opt.MapFrom(src => src.TenantID))
+                .ForMember(dest => dest.OrgId, opt => opt.MapFrom(src => src.OrgID))
+                .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => src.TaxID))
+                .ForMember(dest => dest.ReferralSourceId, opt => opt.MapFrom(src => src.ReferralSourceID))
+                .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryID))
+                .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.StateID))
+                .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityID));
 
         }
     }

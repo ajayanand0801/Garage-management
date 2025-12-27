@@ -17,6 +17,7 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
         Task<bool> UpdateVehicleAsync(long id, Vehicle vehicle);
         Task<bool> DeleteVehicleAsync(long id);
         Task<VinSearchResponse> GetVehicleBYVin(string  vin);
+        Task<bool> UpdateVehicleOwnersAsync(long vehicleId, List<VehicleOwnerDto> owners);
     }
 
 }

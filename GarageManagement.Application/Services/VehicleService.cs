@@ -10,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GarageManagement.Application.Services
 {
@@ -53,13 +54,44 @@ namespace GarageManagement.Application.Services
             return _jsonValidator.Validate(vehicle, JsonRules.VehicleRule, out errors);
         }
 
+        public async Task<List<string>> IsVehicleExists(VehicleDto vehicleRequest)
+        {
+            var errors = new List<string>();
+
+            if (vehicleRequest == null)
+            {
+                errors.Add("Vehicle request cannot be null.");
+                return errors;
+            }
+
+            // Assuming _vehicleRepository.VehicleExistsAsync returns true if any of them exist
+            bool isVehicleExist = await _vehicleRepository.VehicleExistsAsync(
+                vehicleRequest.EngineNumber,
+                vehicleRequest.RegistrationNumber,
+                vehicleRequest.ChassisNumber
+            );
+
+            if (isVehicleExist)
+            {
+                errors.Add("Vehicle with the same Engine Number or Registration Number or Chassis Number already exists.");
+            }
+
+            return errors;
+        }
+
         public async Task<bool> CreateVehicle(VehicleDto vehicleRequest)
         {
            
             var isValid = ValidateVehicle(vehicleRequest, out List<string> errors);
 
-            var vehicle = _mapperUtility.Map<VehicleDto, Vehicle>(vehicleRequest);
+            List<string> existErrors = await IsVehicleExists(vehicleRequest);
+           
+            if(existErrors.Count>0)
+            return false; 
+            
 
+             var vehicle = _mapperUtility.Map<VehicleDto, Vehicle>(vehicleRequest);
+            vehicle.VehicleID = await _vehicleRepository.GetMaxVehicleIdAsync();
             //var vehicle = new Vehicle
             //{
             //    VehicleID = 10006,
@@ -106,6 +138,7 @@ namespace GarageManagement.Application.Services
 
             // // Set any additional system-level values
             vehicle.CreatedAt = DateTime.UtcNow;
+            
             vehicle.CreatedBy = "System"; // or from current user context
             //var maxVehicleId= await _vehicleRepository.GetMaxVehicleIdAsync();
             // vehicle.Owners = null;
@@ -143,6 +176,14 @@ namespace GarageManagement.Application.Services
                  vinresponse.DecodeStatus = "success";
             
             return vinresponse;
+        }
+
+        public async Task<bool> UpdateVehicleOwnersAsync(long vehicleId, List<VehicleOwnerDto> owners)
+        {
+            if (owners == null || owners.Count == 0)
+                return false;
+
+            return await _vehicleRepository.UpdateVehicleOwnersAsync(vehicleId, owners);
         }
     }
 

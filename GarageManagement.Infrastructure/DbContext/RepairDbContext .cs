@@ -1,4 +1,5 @@
-﻿using GarageManagement.Domain.Entites.Quotation;
+﻿using GarageManagement.Domain.Entites;
+using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,9 @@ namespace GarageManagement.Infrastructure.DbContext
         public DbSet<Quotation> Quotations=> Set<Quotation>();
         public DbSet<QuotationItem> QuotationItem => Set<QuotationItem>();
 
+        //Customer
+        public DbSet<Customer> Customers => Set<Customer>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -54,83 +58,153 @@ namespace GarageManagement.Infrastructure.DbContext
             modelBuilder.Entity<ServiceRequestCustomerMetaData>().ToTable("SRCustomerMetaData", "dbo");
             modelBuilder.Entity<Quotation>().ToTable("Quotation", "rpa");
             modelBuilder.Entity<QuotationItem>().ToTable("QuotationItem", "rpa");
+            modelBuilder.Entity<Customer>().ToTable("Customer", "dbo");
 
-
-
-            // Declare alternate keys first
             modelBuilder.Entity<VehicleBrand>()
-                .HasAlternateKey(b => b.BrandID);
+       .HasAlternateKey(b => b.BrandID);
 
+            // VehicleModel: alternate key on ModelID
             modelBuilder.Entity<VehicleModel>()
                 .HasAlternateKey(m => m.ModelID);
 
+            // VehicleModelYear: alternate key on ModelYearID
             modelBuilder.Entity<VehicleModelYear>()
                 .HasAlternateKey(my => my.ModelYearID);
 
-            //modelBuilder.Entity<VehicleVariant>()
-            //    .HasAlternateKey(v => v.VariantID);
+            // (Optionally) VehicleVariant alternate key if you want a VariantID separate from PK
+            // modelBuilder.Entity<VehicleVariant>()
+            //     .HasAlternateKey(vv => vv.VariantID);
 
-            //modelBuilder.Entity<Vehicle>()
-            //    .HasAlternateKey(v => v.VehicleID);
+            // For Vehicle: you already have uniqueness on VehicleID
             modelBuilder.Entity<Vehicle>()
-    .HasIndex(v => v.VehicleID)
-    .IsUnique();
+                .HasIndex(v => v.VehicleID)
+                .IsUnique();
 
+            // ========== RELATIONSHIPS ==========
 
-            // VehicleModelYear -> VehicleModel
+            // VehicleModelYear → VehicleModel
             modelBuilder.Entity<VehicleModelYear>()
                 .HasOne(vmy => vmy.Model)
                 .WithMany(vm => vm.ModelYears)
                 .HasForeignKey(vmy => vmy.ModelID)
                 .HasPrincipalKey(vm => vm.ModelID);
 
-            // Vehicle -> VehicleBrand
+            // Vehicle → VehicleBrand
             modelBuilder.Entity<Vehicle>()
                 .HasOne(v => v.Brand)
                 .WithMany(b => b.Vehicles)
                 .HasForeignKey(v => v.BrandID)
                 .HasPrincipalKey(b => b.BrandID);
 
-            // Vehicle -> VehicleModel
+            // Vehicle → VehicleModel
             modelBuilder.Entity<Vehicle>()
                 .HasOne(v => v.Model)
                 .WithMany(vm => vm.Vehicles)
                 .HasForeignKey(v => v.ModelID)
                 .HasPrincipalKey(vm => vm.ModelID);
 
-            // Vehicle -> VehicleModelYear
+            // Vehicle → VehicleModelYear
             modelBuilder.Entity<Vehicle>()
                 .HasOne(v => v.ModelYear)
                 .WithMany(my => my.Vehicles)
                 .HasForeignKey(v => v.ModelYearID)
                 .HasPrincipalKey(my => my.ModelYearID);
 
-            // VehicleModel -> VehicleBrand
+            // VehicleModel → VehicleBrand
             modelBuilder.Entity<VehicleModel>()
                 .HasOne(vm => vm.Brand)
                 .WithMany(b => b.VehicleModels)
                 .HasForeignKey(vm => vm.BrandID)
                 .HasPrincipalKey(b => b.BrandID);
 
-
-           
-
-          
-
+            // VehicleVariant → VehicleModelYear
             modelBuilder.Entity<VehicleVariant>()
                 .HasOne(vv => vv.ModelYear)
                 .WithMany(my => my.Variants)
                 .HasForeignKey(vv => vv.ModelYearID)
                 .HasPrincipalKey(my => my.ModelYearID);
 
-            // VehicleOwner -> Vehicle
+            // VehicleOwner → Vehicle
             modelBuilder.Entity<VehicleOwner>()
                 .HasOne(vo => vo.Vehicle)
                 .WithMany(v => v.Owners)
                 .HasForeignKey(vo => vo.VehicleID)
                 .HasPrincipalKey(v => v.VehicleID);
 
-                modelBuilder.Entity<VehicleLookup>()
+            //        // Declare alternate keys first
+            //        modelBuilder.Entity<VehicleBrand>()
+            //            .HasAlternateKey(b => b.BrandID);
+
+            //        modelBuilder.Entity<VehicleModel>()
+            //            .HasAlternateKey(m => m.ModelID);
+
+            //        modelBuilder.Entity<VehicleModelYear>()
+            //            .HasAlternateKey(my => my.ModelYearID);
+
+            //        //modelBuilder.Entity<VehicleVariant>()
+            //        //    .HasAlternateKey(v => v.VariantID);
+
+            //        //modelBuilder.Entity<Vehicle>()
+            //        //    .HasAlternateKey(v => v.VehicleID);
+            //        modelBuilder.Entity<Vehicle>()
+            //.HasIndex(v => v.VehicleID)
+            //.IsUnique();
+
+
+            //        // VehicleModelYear -> VehicleModel
+            //        modelBuilder.Entity<VehicleModelYear>()
+            //            .HasOne(vmy => vmy.Model)
+            //            .WithMany(vm => vm.ModelYears)
+            //            .HasForeignKey(vmy => vmy.ModelID)
+            //            .HasPrincipalKey(vm => vm.ModelID);
+
+            //        // Vehicle -> VehicleBrand
+            //        modelBuilder.Entity<Vehicle>()
+            //            .HasOne(v => v.Brand)
+            //            .WithMany(b => b.Vehicles)
+            //            .HasForeignKey(v => v.BrandID)
+            //            .HasPrincipalKey(b => b.BrandID);
+
+            //        // Vehicle -> VehicleModel
+            //        modelBuilder.Entity<Vehicle>()
+            //            .HasOne(v => v.Model)
+            //            .WithMany(vm => vm.Vehicles)
+            //            .HasForeignKey(v => v.ModelID)
+            //            .HasPrincipalKey(vm => vm.ModelID);
+
+            //        // Vehicle -> VehicleModelYear
+            //        modelBuilder.Entity<Vehicle>()
+            //            .HasOne(v => v.ModelYear)
+            //            .WithMany(my => my.Vehicles)
+            //            .HasForeignKey(v => v.ModelYearID)
+            //            .HasPrincipalKey(my => my.ModelYearID);
+
+            //        // VehicleModel -> VehicleBrand
+            //        modelBuilder.Entity<VehicleModel>()
+            //            .HasOne(vm => vm.Brand)
+            //            .WithMany(b => b.VehicleModels)
+            //            .HasForeignKey(vm => vm.BrandID)
+            //            .HasPrincipalKey(b => b.BrandID);
+
+
+
+
+
+
+            //        modelBuilder.Entity<VehicleVariant>()
+            //            .HasOne(vv => vv.ModelYear)
+            //            .WithMany(my => my.Variants)
+            //            .HasForeignKey(vv => vv.ModelYearID)
+            //            .HasPrincipalKey(my => my.ModelYearID);
+
+            //        // VehicleOwner -> Vehicle
+            //        modelBuilder.Entity<VehicleOwner>()
+            //            .HasOne(vo => vo.Vehicle)
+            //            .WithMany(v => v.Owners)
+            //            .HasForeignKey(vo => vo.VehicleID)
+            //            .HasPrincipalKey(v => v.VehicleID);
+
+            modelBuilder.Entity<VehicleLookup>()
                     .HasIndex(v => new { v.LookupType, v.LookupValue })
                     .IsUnique()
                     .HasDatabaseName("UQ_LookupType_Value");
@@ -220,6 +294,24 @@ namespace GarageManagement.Infrastructure.DbContext
                       .HasComputedColumnSql("([TotalPrice] - ISNULL([DiscountAmount], 0) + ISNULL([TaxAmount], 0))", stored: true);
 
                 entity.HasCheckConstraint("CK_QuotationItem_Quantity_Positive", "[Quantity] > 0");
+            });
+
+            //Customer configuration
+            modelBuilder.Entity<Customer>(entity =>
+            {
+                entity.Property(c => c.CustomerGuid)
+                      .HasDefaultValueSql("NEWID()");
+
+                entity.Property(c => c.IsActive)
+                      .HasDefaultValue(true);
+
+                entity.Property(c => c.CreatedAt)
+                      .HasDefaultValueSql("sysutcdatetime()");
+
+                entity.HasCheckConstraint("CK_Customer_CustomerType", "[CustomerType]='Company' OR [CustomerType]='Individual'");
+
+                entity.HasCheckConstraint("CK_Customer_RequiredFields", 
+                    "([CustomerType]='Individual' AND [FirstName] IS NOT NULL AND [LastName] IS NOT NULL) OR ([CustomerType]='Company' AND [CompanyName] IS NOT NULL)");
             });
         }
     }

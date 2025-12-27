@@ -75,7 +75,11 @@ namespace GarageManagement.Infrastructure.Repositories
                 },
                 Owners = vehicle.Owners.Select(o => new VehicleOwnerDto
                 {
+                    Id = o.Id,
+                    OwnerID = o.OwnerID,
+                    Type = o.Type,
                     OwnerName = o.OwnerName,
+                    TradeLicenseNo = o.TradeLicenseNo,
                     ContactNumber = o.ContactNumber,
                     Email = o.Email,
                     Address = o.Address,
@@ -87,7 +91,7 @@ namespace GarageManagement.Infrastructure.Repositories
         public async Task<long> GetMaxVehicleIdAsync()
         {
             // If there are no vehicles yet, return a starting number like 10000
-            var maxId = await _context.Vehicles.MaxAsync(v => (long?)v.VehicleID);
+            var maxId = await _context.Vehicles.MaxAsync(v => (long?)v.VehicleID)+1;
             return maxId ?? 10000;
         }
         public async Task<VinSearchResponse?> GetVinSearchResponseAsync(string vin)
@@ -197,6 +201,97 @@ namespace GarageManagement.Infrastructure.Repositories
             };
 
             return response;
+        }
+
+
+        public async Task<bool> VehicleExistsAsync(string engineNumber, string registrationNo, string chassiNo)
+        {
+            // Normalize input (e.g. trim, uppercase) if needed
+            engineNumber = engineNumber?.Trim();
+            registrationNo = registrationNo?.Trim();
+            chassiNo = chassiNo?.Trim();
+
+            return await _context.Vehicles.AnyAsync(v =>
+                v.EngineNumber == engineNumber
+                || v.RegistrationNumber == registrationNo
+                || v.ChassisNumber == chassiNo
+            );
+        }
+
+        public async Task<bool> UpdateVehicleOwnersAsync(long vehicleId, List<VehicleOwnerDto> owners)
+        {
+            // Get the vehicle with its owners
+            var vehicle = await _context.Vehicles
+                .Include(v => v.Owners)
+                .FirstOrDefaultAsync(v => v.VehicleID == vehicleId);
+
+            if (vehicle == null)
+                return false;
+
+            // Process each owner from the payload
+            foreach (var ownerDto in owners)
+            {
+                VehicleOwner? existingOwner = null;
+
+                // Try to find existing owner by Id (primary key) if provided
+                if (ownerDto.Id.HasValue && ownerDto.Id.Value > 0)
+                {
+                    existingOwner = vehicle.Owners?.FirstOrDefault(o => o.Id == ownerDto.Id.Value);
+                }
+                // If not found by Id, try to find by OwnerID (business identifier)
+                else if (ownerDto.OwnerID > 0)
+                {
+                    existingOwner = vehicle.Owners?.FirstOrDefault(o => o.OwnerID == ownerDto.OwnerID && o.VehicleID == vehicleId);
+                }
+
+                if (existingOwner != null)
+                {
+                    // Update existing owner
+                    existingOwner.OwnerID = ownerDto.OwnerID;
+                    existingOwner.Type = ownerDto.Type;
+                    existingOwner.OwnerName = ownerDto.OwnerName;
+                    existingOwner.TradeLicenseNo = ownerDto.TradeLicenseNo;
+                    existingOwner.ContactNumber = ownerDto.ContactNumber;
+                    existingOwner.Email = ownerDto.Email;
+                    existingOwner.Address = ownerDto.Address;
+                    existingOwner.OwnershipStartDate = ownerDto.OwnershipStartDate;
+                    existingOwner.OwnershipEndDate = ownerDto.OwnershipEndDate;
+                    existingOwner.VehicleID = vehicleId;
+                    existingOwner.VehicleVIN = vehicle.VIN;
+                    existingOwner.ModifiedAt = DateTime.UtcNow;
+                    existingOwner.ModifiedBy = "System";
+                    existingOwner.IsActive = true;
+                    existingOwner.IsDeleted = false;
+
+                    _context.Owners.Update(existingOwner);
+                }
+                else
+                {
+                    // Create new owner
+                    var newOwner = new VehicleOwner
+                    {
+                        OwnerID = ownerDto.OwnerID,
+                        Type = ownerDto.Type,
+                        OwnerName = ownerDto.OwnerName,
+                        TradeLicenseNo = ownerDto.TradeLicenseNo,
+                        ContactNumber = ownerDto.ContactNumber,
+                        Email = ownerDto.Email,
+                        Address = ownerDto.Address,
+                        OwnershipStartDate = ownerDto.OwnershipStartDate,
+                        OwnershipEndDate = ownerDto.OwnershipEndDate,
+                        VehicleID = vehicleId,
+                        VehicleVIN = vehicle.VIN,
+                        IsActive = true,
+                        IsDeleted = false,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = "System"
+                    };
+
+                    await _context.Owners.AddAsync(newOwner);
+                }
+            }
+
+            return await _context.SaveChangesAsync() > 0;
         }
 
     }

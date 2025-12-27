@@ -21,6 +21,10 @@ namespace GarageManagement.Domain.Entites.Vehicles
         public DateTime? OwnershipEndDate { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
+        public long OwnerID { get; set; }
+        public int Type { get; set; }// 1 - individual,2 Company,3.Fleet,
+       public string? TradeLicenseNo { get; set; }
+
 
         public Vehicle Vehicle { get; set; } = null!;
     }

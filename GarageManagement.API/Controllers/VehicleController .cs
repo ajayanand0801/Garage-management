@@ -58,6 +58,16 @@ namespace GarageManagement.API.Controllers
 
             return Ok(result);
         }
+
+        [HttpPut("{vehicleId}/owners")]
+        public async Task<IActionResult> UpdateVehicleOwners(long vehicleId, [FromBody] List<VehicleOwnerDto> owners)
+        {
+            if (owners == null || owners.Count == 0)
+                return BadRequest("Owners list cannot be null or empty");
+
+            var result = await _service.UpdateVehicleOwnersAsync(vehicleId, owners);
+            return result ? Ok() : NotFound();
+        }
     }
 
 }

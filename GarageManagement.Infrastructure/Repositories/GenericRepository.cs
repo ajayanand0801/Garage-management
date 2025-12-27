@@ -72,7 +72,19 @@ namespace GarageManagement.Infrastructure.Repositories
 
         public async Task<bool> UpdateAsync(T entity)
         {
-            _dbSet.Update(entity);
+            var entry = _context.Entry(entity);
+            
+            // If entity is already tracked, just mark it as modified
+            if (entry.State == EntityState.Detached)
+            {
+                _dbSet.Update(entity);
+            }
+            else
+            {
+                // Entity is already tracked, mark all properties as modified
+                entry.State = EntityState.Modified;
+            }
+            
             return await _context.SaveChangesAsync() > 0;
         }
 

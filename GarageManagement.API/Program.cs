@@ -12,6 +12,7 @@ using GarageManagement.Infrastructure.Repositories;
 using GarageManagement.Infrastructure.Validator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
@@ -49,6 +50,7 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IVehicleLookupRepository, VehicleLookupRepository>();
 builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
 builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -58,6 +60,7 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IVehicleLookupService, VehicleLookupService>();
 builder.Services.AddScoped<IServiceRequest, ServiceRequestService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 // Validator
 builder.Services.AddScoped<IJsonValidator, JsonValidator>();

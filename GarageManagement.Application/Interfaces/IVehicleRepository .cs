@@ -14,6 +14,8 @@ namespace GarageManagement.Application.Interfaces
         Task<IEnumerable<Vehicle>> GetAllVehiclesWithOwnersAsync();
         Task<long> GetMaxVehicleIdAsync();
         Task<VinSearchResponse?> GetVinSearchResponseAsync(string vin);
+        Task<bool> VehicleExistsAsync(string engineNumber, string registrationNo, string chassiNo);
+        Task<bool> UpdateVehicleOwnersAsync(long vehicleId, List<VehicleOwnerDto> owners);
     }
 
 }

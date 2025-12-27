@@ -57,7 +57,7 @@ namespace GarageManagement.Domain.Entites.Vehicles
         public string? ModifiedBy { get; set; }
 
         [Required]
-        public bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; } = false;
         // Navigation properties
         public VehicleBrand? Brand { get; set; }
         public VehicleModel? Model { get; set; }
