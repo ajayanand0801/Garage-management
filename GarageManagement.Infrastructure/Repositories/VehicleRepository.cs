@@ -37,6 +37,16 @@ namespace GarageManagement.Infrastructure.Repositories
                 .Include(v => v.Owners)
                 .ToListAsync();
         }
+
+        public IQueryable<Vehicle> GetAll()
+        {
+            return _context.Vehicles
+                .Include(v => v.Owners)
+                .Include(v => v.Brand)
+                .Include(v => v.Model)
+                .Include(v => v.ModelYear)
+                .Where(v => !v.IsDeleted && v.IsActive);
+        }
         public async Task<VehicleDto?> GetVehicleWithDetailsAsync(long vehicleId)
         {
             var vehicle = await _context.Vehicles

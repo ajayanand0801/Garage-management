@@ -63,11 +63,11 @@ namespace GarageManagement.API.Controllers
             if (customerDto == null)
                 return BadRequest("Customer data cannot be null.");
 
-            var result = await _customerService.CreateCustomerAsync(customerDto);
-            if (!result)
+            var createdCustomer = await _customerService.CreateCustomerAsync(customerDto);
+            if (createdCustomer == null || !createdCustomer.Id.HasValue)
                 return BadRequest("Failed to create customer.");
 
-            return CreatedAtAction(nameof(GetById), new { id = customerDto.Id }, customerDto);
+            return CreatedAtAction(nameof(GetById), new { id = createdCustomer.Id.Value }, createdCustomer);
         }
 
         /// <summary>

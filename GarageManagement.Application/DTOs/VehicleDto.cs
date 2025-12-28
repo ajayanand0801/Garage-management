@@ -15,6 +15,7 @@ namespace GarageManagement.Application.DTOs
         public string? RegistrationNumber { get; set; }
         public string? EngineNumber { get; set; }
         public string? ChassisNumber { get; set; }
+        public string? BodyType { get; set; } = "-";
         public bool IsActive { get; set; } = true; // Default to true
         public bool IsDeleted { get; set; } = false; // Default to false
 
@@ -55,6 +56,27 @@ namespace GarageManagement.Application.DTOs
         public DateTime OwnershipStartDate { get; set; }
         public DateTime? OwnershipEndDate { get; set; }
        
+    }
+
+    // Vehicle Lookup DTOs
+    public class VehicleMakeDto
+    {
+        public long MakeID { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class VehicleModelLookupDto
+    {
+        public long MakeID { get; set; }
+        public long ModelID { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class VehicleModelYearLookupDto
+    {
+        public long ModelID { get; set; }
+        public long ModelYearID { get; set; }
+        public int ModelYear { get; set; }
     }
 
 }

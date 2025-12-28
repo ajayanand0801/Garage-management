@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.DTOs;
+﻿using ComponentManagement.PaginationUtility;
+using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces;
 using GarageManagement.Application.Interfaces.Mapper;
 using GarageManagement.Application.Interfaces.ServiceInterface;
@@ -20,16 +21,18 @@ namespace GarageManagement.Application.Services
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IJsonValidator _jsonValidator;
         private readonly IMapperUtility _mapperUtility;
+        private readonly IPaginationService<Vehicle> _paginationService;
 
 
 
 
-        public VehicleService(IGenericRepository<Vehicle> vehicleGenricRepo, IVehicleRepository vehicleRepository, IJsonValidator jsonValidator, IMapperUtility mapperUtility)
+        public VehicleService(IGenericRepository<Vehicle> vehicleGenricRepo, IVehicleRepository vehicleRepository, IJsonValidator jsonValidator, IMapperUtility mapperUtility, IPaginationService<Vehicle> paginationService)
         {
             _vehicleGenricRepo = vehicleGenricRepo;
             _vehicleRepository = vehicleRepository;
             _jsonValidator = jsonValidator;
             _mapperUtility = mapperUtility;
+            _paginationService = paginationService;
         }
 
         public async Task<IEnumerable<Vehicle>> GetAllVehiclesAsync() => await _vehicleRepository.GetAllVehiclesWithOwnersAsync();
@@ -184,6 +187,27 @@ namespace GarageManagement.Application.Services
                 return false;
 
             return await _vehicleRepository.UpdateVehicleOwnersAsync(vehicleId, owners);
+        }
+
+        public async Task<PaginationResult<VehicleDto>> GetAllVehiclesAsync(PaginationRequest request, CancellationToken cancellationToken)
+        {
+            IQueryable<Vehicle> query = _vehicleRepository.GetAll();
+
+            var pagedResult = await _paginationService.PaginateAsync(
+                query,
+                request,
+                cancellationToken);
+
+            // Map PaginationResult<Vehicle> to PaginationResult<VehicleDto>
+            var mappedItems = pagedResult.Items.Select(v => _mapperUtility.Map<Vehicle, VehicleDto>(v)).ToList();
+
+            var result = new PaginationResult<VehicleDto>
+            {
+                Items = mappedItems,
+                TotalCount = pagedResult.TotalCount
+            };
+
+            return result;
         }
     }
 

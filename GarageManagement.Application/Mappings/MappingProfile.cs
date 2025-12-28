@@ -44,20 +44,49 @@ namespace GarageManagement.Application.Mappings
             // Owner DTO -> Entity
             CreateMap<VehicleOwnerDto, VehicleOwner>();
 
+            // VehicleBrand Entity -> DTO
+            CreateMap<VehicleBrand, VehicleBrandDto>()
+                .ForMember(dest => dest.BrandID, opt => opt.MapFrom(src => src.BrandID))
+                .ForMember(dest => dest.BrandName, opt => opt.MapFrom(src => src.BrandName));
+
+            // VehicleModel Entity -> DTO
+            CreateMap<VehicleModel, VehicleModelDto>()
+                .ForMember(dest => dest.ModelID, opt => opt.MapFrom(src => src.ModelID))
+                .ForMember(dest => dest.ModelName, opt => opt.MapFrom(src => src.ModelName));
+
+            // VehicleModelYear Entity -> DTO
+            CreateMap<VehicleModelYear, VehicleModelYearDto>()
+                .ForMember(dest => dest.ModelYearID, opt => opt.MapFrom(src => src.ModelYearID))
+                .ForMember(dest => dest.ModelYear, opt => opt.MapFrom(src => src.ModelYear));
+
+            // VehicleOwner Entity -> DTO (complete mapping)
+            CreateMap<VehicleOwner, VehicleOwnerDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.OwnerID, opt => opt.MapFrom(src => src.OwnerID))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type))
+                .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src => src.OwnerName))
+                .ForMember(dest => dest.TradeLicenseNo, opt => opt.MapFrom(src => src.TradeLicenseNo))
+                .ForMember(dest => dest.ContactNumber, opt => opt.MapFrom(src => src.ContactNumber))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.OwnershipStartDate, opt => opt.MapFrom(src => src.OwnershipStartDate))
+                .ForMember(dest => dest.OwnershipEndDate, opt => opt.MapFrom(src => src.OwnershipEndDate));
+
+            // Vehicle Entity -> DTO
             CreateMap<Vehicle, VehicleDto>()
-            .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Brand))
-            .ForMember(dest => dest.Model, opt => opt.MapFrom(src => src.Model))
-            .ForMember(dest => dest.ModelYear, opt => opt.MapFrom(src => src.ModelYear))
-             .ForMember(dest => dest.Owners, opt => opt.MapFrom(src => src.Owners));
-
-            // Optional reverse mapping (Entity -> DTO)
-            //CreateMap<Vehicle, VehicleDto>()
-            //    .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => new VehicleBrandDto { BrandID = src.BrandID }))
-            //    .ForMember(dest => dest.Model, opt => opt.MapFrom(src => new VehicleModelDto { ModelID = src.ModelID }))
-            //    .ForMember(dest => dest.ModelYear, opt => opt.MapFrom(src => new VehicleModelYearDto { ModelYearID = src.ModelYearID }))
-            //    .ForMember(dest => dest.Owners, opt => opt.MapFrom(src => src.Owners));
-
-            CreateMap<VehicleOwner, VehicleOwnerDto>();
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.VehicleID, opt => opt.MapFrom(src => src.VehicleID))
+                .ForMember(dest => dest.VIN, opt => opt.MapFrom(src => src.VIN))
+                .ForMember(dest => dest.Color, opt => opt.MapFrom(src => src.Color))
+                .ForMember(dest => dest.RegistrationNumber, opt => opt.MapFrom(src => src.RegistrationNumber))
+                .ForMember(dest => dest.EngineNumber, opt => opt.MapFrom(src => src.EngineNumber))
+                .ForMember(dest => dest.ChassisNumber, opt => opt.MapFrom(src => src.ChassisNumber))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => dest.IsDeleted, opt => opt.MapFrom(src => src.IsDeleted))
+                .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Brand))
+                .ForMember(dest => dest.Model, opt => opt.MapFrom(src => src.Model))
+                .ForMember(dest => dest.ModelYear, opt => opt.MapFrom(src => src.ModelYear))
+                .ForMember(dest => dest.Owners, opt => opt.MapFrom(src => src.Owners));
 
             CreateMap<VehicleLookupDTO, VehicleLookup>()
      .ForMember(dest => dest.LookupID, opt => opt.MapFrom(src => src.ID));
@@ -395,6 +424,7 @@ namespace GarageManagement.Application.Mappings
                 .ForMember(dest => dest.CountryID, opt => opt.MapFrom(src => src.CountryId))
                 .ForMember(dest => dest.StateID, opt => opt.MapFrom(src => src.StateId))
                 .ForMember(dest => dest.CityID, opt => opt.MapFrom(src => src.CityId))
+                .ForMember(dest => dest.ReferralSourceID, opt => opt.MapFrom(src => src.ReferralSourceId))
                 .ForMember(dest => dest.CreatedAt, opt => opt.Condition((src, dest, srcMember) => srcMember != default(DateTime)))
                 .ForMember(dest => dest.ModifiedAt, opt => opt.MapFrom(src => src.ModifiedAt));
 
@@ -407,8 +437,27 @@ namespace GarageManagement.Application.Mappings
                 .ForMember(dest => dest.TaxId, opt => opt.MapFrom(src => src.TaxID))
                 .ForMember(dest => dest.ReferralSourceId, opt => opt.MapFrom(src => src.ReferralSourceID))
                 .ForMember(dest => dest.CountryId, opt => opt.MapFrom(src => src.CountryID))
+                .ForMember(dest => dest.ReferralSourceId, opt => opt.MapFrom(src => src.ReferralSourceID))
                 .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.StateID))
                 .ForMember(dest => dest.CityId, opt => opt.MapFrom(src => src.CityID));
+
+            // Vehicle Lookup DTOs mappings
+            // VehicleBrand -> VehicleMakeDto
+            CreateMap<VehicleBrand, VehicleMakeDto>()
+                .ForMember(dest => dest.MakeID, opt => opt.MapFrom(src => src.BrandID))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.BrandName));
+
+            // VehicleModel -> VehicleModelLookupDto
+            CreateMap<VehicleModel, VehicleModelLookupDto>()
+                .ForMember(dest => dest.MakeID, opt => opt.MapFrom(src => src.BrandID))
+                .ForMember(dest => dest.ModelID, opt => opt.MapFrom(src => src.ModelID))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.ModelName));
+
+            // VehicleModelYear -> VehicleModelYearLookupDto
+            CreateMap<VehicleModelYear, VehicleModelYearLookupDto>()
+                .ForMember(dest => dest.ModelID, opt => opt.MapFrom(src => src.ModelID))
+                .ForMember(dest => dest.ModelYearID, opt => opt.MapFrom(src => src.ModelYearID))
+                .ForMember(dest => dest.ModelYear, opt => opt.MapFrom(src => src.ModelYear));
 
         }
     }

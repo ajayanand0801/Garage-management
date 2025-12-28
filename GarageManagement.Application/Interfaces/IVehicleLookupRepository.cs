@@ -13,6 +13,9 @@ namespace GarageManagement.Application.Interfaces
         Task<IEnumerable<VehicleLookupDTO>> GetAllVehicleLookupsAsync();
         Task<VehicleLookupDTO?> GetVehicleLookupWithDetailsAsync(int id);
         Task<IEnumerable<VehicleLookupDTO>> GetVehicleLookupsByTypeAsync(string lookupType);
+        Task<IEnumerable<VehicleMakeDto>> GetAllMakesAsync();
+        Task<IEnumerable<VehicleModelLookupDto>> GetModelsByMakeIdAsync(long makeId);
+        Task<IEnumerable<VehicleModelYearLookupDto>> GetYearsByModelIdAsync(long modelId);
     }
 
 }

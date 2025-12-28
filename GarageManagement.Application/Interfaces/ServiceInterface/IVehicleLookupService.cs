@@ -18,5 +18,8 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
         bool ValidateVehicleLookup(VehicleLookupDTO vehicleLookupDto, out List<string> errors);
         Task<bool> CreateVehicleLookup(VehicleLookupDTO vehicleLookupRequest);
         Task<IEnumerable<VehicleLookupDTO>> GetVehicleLookupsByTypeAsync(string lookupType);
+        Task<IEnumerable<VehicleMakeDto>> GetAllMakesAsync();
+        Task<IEnumerable<VehicleModelLookupDto>> GetModelsByMakeIdAsync(long makeId);
+        Task<IEnumerable<VehicleModelYearLookupDto>> GetYearsByModelIdAsync(long modelId);
     }
 }

@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.DTOs;
+﻿using ComponentManagement.PaginationUtility;
+using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces.ServiceInterface;
 using GarageManagement.Domain.Entites.Vehicles;
 using Microsoft.AspNetCore.Http;
@@ -67,6 +68,20 @@ namespace GarageManagement.API.Controllers
 
             var result = await _service.UpdateVehicleOwnersAsync(vehicleId, owners);
             return result ? Ok() : NotFound();
+        }
+
+        /// <summary>
+        /// Get all vehicles with pagination
+        /// </summary>
+        [HttpPost("paginated")]
+        public async Task<IActionResult> GetAllVehicles([FromBody] PaginationRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null)
+                return BadRequest("Invalid request payload.");
+
+            var paginatedResult = await _service.GetAllVehiclesAsync(request, cancellationToken);
+
+            return Ok(paginatedResult);
         }
     }
 

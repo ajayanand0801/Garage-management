@@ -93,6 +93,21 @@ namespace GarageManagement.Application.Services
         {
             return await _vehicleLookupRepository.GetVehicleLookupsByTypeAsync(lookupType);
         }
+
+        public async Task<IEnumerable<VehicleMakeDto>> GetAllMakesAsync()
+        {
+            return await _vehicleLookupRepository.GetAllMakesAsync();
+        }
+
+        public async Task<IEnumerable<VehicleModelLookupDto>> GetModelsByMakeIdAsync(long makeId)
+        {
+            return await _vehicleLookupRepository.GetModelsByMakeIdAsync(makeId);
+        }
+
+        public async Task<IEnumerable<VehicleModelYearLookupDto>> GetYearsByModelIdAsync(long modelId)
+        {
+            return await _vehicleLookupRepository.GetYearsByModelIdAsync(modelId);
+        }
     }
 
 

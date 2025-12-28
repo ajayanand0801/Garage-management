@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.DTOs;
+﻿using ComponentManagement.PaginationUtility;
+using GarageManagement.Application.DTOs;
 using GarageManagement.Domain.Entites.Vehicles;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
         Task<bool> DeleteVehicleAsync(long id);
         Task<VinSearchResponse> GetVehicleBYVin(string  vin);
         Task<bool> UpdateVehicleOwnersAsync(long vehicleId, List<VehicleOwnerDto> owners);
+        Task<PaginationResult<VehicleDto>> GetAllVehiclesAsync(PaginationRequest request, CancellationToken cancellationToken);
     }
 
 }

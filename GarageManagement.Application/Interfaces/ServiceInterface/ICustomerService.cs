@@ -12,7 +12,7 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
     {
         Task<IEnumerable<CrmCustomerDTO>> GetAllCustomersAsync();
         Task<CrmCustomerDTO?> GetCustomerByIdAsync(long id);
-        Task<bool> CreateCustomerAsync(CrmCustomerDTO customerDto);
+        Task<CrmCustomerDTO?> CreateCustomerAsync(CrmCustomerDTO customerDto);
         Task<bool> UpdateCustomerAsync(long id, CrmCustomerDTO customerDto);
         Task<bool> DeleteCustomerAsync(long id);
         Task<PaginationResult<CrmCustomerDTO>> GetAllCustomersAsync(PaginationRequest request, CancellationToken cancellationToken);

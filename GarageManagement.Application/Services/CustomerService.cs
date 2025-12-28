@@ -46,7 +46,7 @@ namespace GarageManagement.Application.Services
             return _mapperUtility.Map<Customer, CrmCustomerDTO>(customer);
         }
 
-        public async Task<bool> CreateCustomerAsync(CrmCustomerDTO customerDto)
+        public async Task<CrmCustomerDTO?> CreateCustomerAsync(CrmCustomerDTO customerDto)
         {
             var customer = _mapperUtility.Map<CrmCustomerDTO, Customer>(customerDto);
             
@@ -57,7 +57,12 @@ namespace GarageManagement.Application.Services
             customer.IsActive = true;
             customer.IsDeleted = false;
 
-            return await _customerGenericRepo.AddAsync(customer);
+            var result = await _customerGenericRepo.AddAsync(customer);
+            if (!result)
+                return null;
+
+            // Return the created customer with its ID
+            return _mapperUtility.Map<Customer, CrmCustomerDTO>(customer);
         }
 
         public async Task<bool> UpdateCustomerAsync(long id, CrmCustomerDTO customerDto)

@@ -46,6 +46,50 @@ namespace GarageManagement.Infrastructure.Repositories
 
             return _mapper.Map<IEnumerable<VehicleLookupDTO>>(entities);
         }
+
+        public async Task<IEnumerable<VehicleMakeDto>> GetAllMakesAsync()
+        {
+            var brands = await _context.Brands
+                .Where(b => !b.IsDeleted && b.IsActive)
+                .OrderBy(b => b.BrandName)
+                .ToListAsync();
+
+            return brands.Select(b => new VehicleMakeDto
+            {
+                MakeID = b.BrandID,
+                Name = b.BrandName
+            });
+        }
+
+        public async Task<IEnumerable<VehicleModelLookupDto>> GetModelsByMakeIdAsync(long makeId)
+        {
+            var models = await _context.Models
+                .Where(m => m.BrandID == makeId && !m.IsDeleted && m.IsActive)
+                .OrderBy(m => m.ModelName)
+                .ToListAsync();
+
+            return models.Select(m => new VehicleModelLookupDto
+            {
+                MakeID = m.BrandID,
+                ModelID = m.ModelID,
+                Name = m.ModelName
+            });
+        }
+
+        public async Task<IEnumerable<VehicleModelYearLookupDto>> GetYearsByModelIdAsync(long modelId)
+        {
+            var modelYears = await _context.ModelYears
+                .Where(my => my.ModelID == modelId && !my.IsDeleted && my.IsActive)
+                .OrderBy(my => my.ModelYear)
+                .ToListAsync();
+
+            return modelYears.Select(my => new VehicleModelYearLookupDto
+            {
+                ModelID = my.ModelID,
+                ModelYearID = my.ModelYearID,
+                ModelYear = my.ModelYear
+            });
+        }
     }
 
 

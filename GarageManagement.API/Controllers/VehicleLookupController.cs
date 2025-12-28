@@ -60,6 +60,36 @@ namespace GarageManagement.API.Controllers
             var result = await _service.DeleteVehicleLookupAsync(id);
             return result ? Ok() : NotFound();
         }
+
+        /// <summary>
+        /// Get all vehicle makes (brands)
+        /// </summary>
+        [HttpGet("makes")]
+        public async Task<IActionResult> GetAllMakes()
+        {
+            var makes = await _service.GetAllMakesAsync();
+            return Ok(makes);
+        }
+
+        /// <summary>
+        /// Get all models for a specific make
+        /// </summary>
+        [HttpGet("makes/{id}/models")]
+        public async Task<IActionResult> GetModelsByMakeId(long id)
+        {
+            var models = await _service.GetModelsByMakeIdAsync(id);
+            return Ok(models);
+        }
+
+        /// <summary>
+        /// Get all years for a specific model
+        /// </summary>
+        [HttpGet("models/{id}/years")]
+        public async Task<IActionResult> GetYearsByModelId(long id)
+        {
+            var years = await _service.GetYearsByModelIdAsync(id);
+            return Ok(years);
+        }
     }
 
 
