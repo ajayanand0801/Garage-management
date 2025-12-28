@@ -42,6 +42,21 @@ namespace GarageManagement.Domain.Entites.Vehicles
         [StringLength(50)]
         public string? ChassisNumber { get; set; }
 
+        public DateTime? RegDate { get; set; }
+
+        public DateTime? ManufactureDate { get; set; }
+
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal? EngineSize { get; set; }
+
+        public long? DrivetrainID { get; set; }
+
+        public long? TransmissionID { get; set; }
+
+        public long? BodyTypeID { get; set; }
+
+        public long? FuelTypeID { get; set; }
+
         [Required]
         public bool IsActive { get; set; }
 

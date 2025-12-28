@@ -16,6 +16,16 @@ namespace GarageManagement.Application.DTOs
         public string? EngineNumber { get; set; }
         public string? ChassisNumber { get; set; }
         public string? BodyType { get; set; } = "-";
+        public DateTime? RegDate { get; set; }
+        public DateTime? ManufactureDate { get; set; }
+        public decimal? EngineSize { get; set; }
+        public long? DrivetrainID { get; set; }
+        public string ? DriveTrain { get; set; }
+        public long? TransmissionID { get; set; }
+        public string? TransmissionType { get; set; }
+        public long? BodyTypeID { get; set; }
+        public long? FuelTypeID { get; set; }
+        public string? FuelType { get; set; }
         public bool IsActive { get; set; } = true; // Default to true
         public bool IsDeleted { get; set; } = false; // Default to false
 
