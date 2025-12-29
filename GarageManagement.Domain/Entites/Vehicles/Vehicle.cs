@@ -46,6 +46,8 @@ namespace GarageManagement.Domain.Entites.Vehicles
 
         public DateTime? ManufactureDate { get; set; }
 
+        public long? Mileage { get; set; }
+
         [Column(TypeName = "decimal(5,2)")]
         public decimal? EngineSize { get; set; }
 

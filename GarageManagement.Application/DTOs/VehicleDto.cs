@@ -28,6 +28,7 @@ namespace GarageManagement.Application.DTOs
         public string? FuelType { get; set; }
         public bool IsActive { get; set; } = true; // Default to true
         public bool IsDeleted { get; set; } = false; // Default to false
+        public long? Mileage { get; set; }
 
         public VehicleBrandDto? Brand { get; set; }
         public VehicleModelDto ?Model { get; set; }

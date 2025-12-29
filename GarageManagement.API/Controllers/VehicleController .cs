@@ -36,7 +36,7 @@ namespace GarageManagement.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(long id, [FromBody] Vehicle vehicle)
+        public async Task<IActionResult> Update(long id, [FromBody] VehicleDto vehicle)
         {
             var result = await _service.UpdateVehicleAsync(id, vehicle);
             return result ? Ok() : NotFound();

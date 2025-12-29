@@ -15,7 +15,7 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
         Task<VehicleDto?> GetVehicleByIdAsync(long id);
         Task<bool> CreateVehicleAsync(Vehicle vehicle);
         Task<bool> CreateVehicle(VehicleDto vehicleRequest);
-        Task<bool> UpdateVehicleAsync(long id, Vehicle vehicle);
+        Task<bool> UpdateVehicleAsync(long id, VehicleDto vehicle);
         Task<bool> DeleteVehicleAsync(long id);
         Task<VinSearchResponse> GetVehicleBYVin(string  vin);
         Task<bool> UpdateVehicleOwnersAsync(long vehicleId, List<VehicleOwnerDto> owners);

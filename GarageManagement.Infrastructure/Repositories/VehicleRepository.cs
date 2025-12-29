@@ -222,18 +222,30 @@ namespace GarageManagement.Infrastructure.Repositories
         }
 
 
-        public async Task<bool> VehicleExistsAsync(string engineNumber, string registrationNo, string chassiNo)
+        public async Task<bool> VehicleExistsAsync(string engineNumber, string registrationNo, string vin, string chassisNumber)
         {
-            // Normalize input (e.g. trim, uppercase) if needed
-            engineNumber = engineNumber?.Trim();
-            registrationNo = registrationNo?.Trim();
-            chassiNo = chassiNo?.Trim();
+            // Normalize input - convert empty strings to null
+            engineNumber = string.IsNullOrWhiteSpace(engineNumber) ? null : engineNumber.Trim();
+            registrationNo = string.IsNullOrWhiteSpace(registrationNo) ? null : registrationNo.Trim();
+            vin = string.IsNullOrWhiteSpace(vin) ? null : vin.Trim();
+            chassisNumber = string.IsNullOrWhiteSpace(chassisNumber) ? null : chassisNumber.Trim();
 
-            return await _context.Vehicles.AnyAsync(v =>
-                v.EngineNumber == engineNumber
-                || v.RegistrationNumber == registrationNo
-                || v.ChassisNumber == chassiNo
-            );
+            // Check for existing vehicles with the same unique field values
+            // For non-null values, check for exact matches
+            // For null values, check if there's already a NULL or empty string (some DB configs don't allow multiple NULLs in unique columns)
+            return await _context.Vehicles
+                .Where(v => !v.IsDeleted && v.IsActive)
+                .AnyAsync(v =>
+                  // VIN is required (NOT NULL)// so always check
+                   (vin != null && v.VIN == vin) 
+                   //// For nullable fields, check both non-null matches and NULL/empty string conflicts
+                   //(engineNumber != null && v.EngineNumber != null && v.EngineNumber == engineNumber) ||
+                   //(engineNumber == null && (v.EngineNumber == null || v.EngineNumber == "")) ||
+                   //(registrationNo != null && v.RegistrationNumber != null && v.RegistrationNumber == registrationNo) ||
+                   //(registrationNo == null && (v.RegistrationNumber == null || v.RegistrationNumber == "")) ||
+                   //(chassisNumber != null && v.ChassisNumber != null && v.ChassisNumber == chassisNumber) ||
+                   //(chassisNumber == null && (v.ChassisNumber == null || v.ChassisNumber == ""))
+               );
         }
 
         public async Task<bool> UpdateVehicleOwnersAsync(long vehicleId, List<VehicleOwnerDto> owners)

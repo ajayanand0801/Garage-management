@@ -49,13 +49,46 @@ namespace GarageManagement.Application.Services
 
         public async Task<bool> CreateVehicleAsync(Vehicle vehicle) => await _vehicleGenricRepo.AddAsync(vehicle);
 
-        public async Task<bool> UpdateVehicleAsync(long id, Vehicle updated)
+        public async Task<bool> UpdateVehicleAsync(long id, VehicleDto updated)
         {
             var existing = await _vehicleGenricRepo.GetByIdAsync(id);
             if (existing == null) return false;
-
-            updated.Id = existing.Id;
-            return await _vehicleGenricRepo.UpdateAsync(updated);
+            
+            // Store key and system fields that should not be modified
+            var originalVehicleID = existing.VehicleID;
+            var originalCreatedAt = existing.CreatedAt;
+            var originalCreatedBy = existing.CreatedBy;
+            var originalId = existing.Id;
+            
+            // Map DTO properties to the existing tracked entity
+            _mapperUtility.Map<VehicleDto, Vehicle>(updated, existing);
+            
+            // Preserve key and system fields that shouldn't be updated from DTO
+            existing.Id = originalId;
+            existing.VehicleID = originalVehicleID; // VehicleID is a unique key and cannot be modified
+            existing.CreatedAt = originalCreatedAt; // Preserve original creation date
+            existing.CreatedBy = originalCreatedBy; // Preserve original creator
+            
+            // Update audit fields
+            existing.ModifiedAt = DateTime.UtcNow;
+            existing.ModifiedBy =  "System";
+            
+            // Normalize empty strings to null for nullable unique fields
+            if (string.IsNullOrWhiteSpace(existing.RegistrationNumber))
+                existing.RegistrationNumber = null;
+            if (string.IsNullOrWhiteSpace(existing.EngineNumber))
+                existing.EngineNumber = null;
+            if (string.IsNullOrWhiteSpace(existing.ChassisNumber))
+                existing.ChassisNumber = null;
+            
+            // VIN is required, ensure it's not empty
+            if (string.IsNullOrWhiteSpace(existing.VIN))
+            {
+                throw new ArgumentException("VIN is required and cannot be empty.");
+            }
+            existing.VIN = existing.VIN.Trim();
+            
+            return await _vehicleGenricRepo.UpdateAsync(existing);
         }
 
         public async Task<bool> DeleteVehicleAsync(long id) => await _vehicleGenricRepo.DeleteAsync(id);
@@ -75,16 +108,23 @@ namespace GarageManagement.Application.Services
                 return errors;
             }
 
-            // Assuming _vehicleRepository.VehicleExistsAsync returns true if any of them exist
+            // Normalize values before checking (same as in CreateVehicle)
+            var engineNumber = string.IsNullOrWhiteSpace(vehicleRequest.EngineNumber) ? null : vehicleRequest.EngineNumber.Trim();
+            var registrationNumber = string.IsNullOrWhiteSpace(vehicleRequest.RegistrationNumber) ? null : vehicleRequest.RegistrationNumber.Trim();
+            var vin = string.IsNullOrWhiteSpace(vehicleRequest.VIN) ? null : vehicleRequest.VIN.Trim();
+            var chassisNumber = string.IsNullOrWhiteSpace(vehicleRequest.ChassisNumber) ? null : vehicleRequest.ChassisNumber.Trim();
+
+            // Check for existing vehicles with the same unique field values
             bool isVehicleExist = await _vehicleRepository.VehicleExistsAsync(
-                vehicleRequest.EngineNumber,
-                vehicleRequest.RegistrationNumber,
-                vehicleRequest.ChassisNumber
+                engineNumber,
+                registrationNumber,
+                vin,
+                chassisNumber
             );
 
             if (isVehicleExist)
             {
-                errors.Add("Vehicle with the same Engine Number or Registration Number or Chassis Number already exists.");
+                errors.Add("Vehicle with the same VIN, Engine Number, Registration Number, or Chassis Number already exists.");
             }
 
             return errors;
@@ -103,6 +143,29 @@ namespace GarageManagement.Application.Services
 
              var vehicle = _mapperUtility.Map<VehicleDto, Vehicle>(vehicleRequest);
             vehicle.VehicleID = await _vehicleRepository.GetMaxVehicleIdAsync();
+            
+            // Additional normalization (mapping already handles this, but double-check for safety)
+            // Convert empty strings to null to avoid unique constraint violations
+            if (string.IsNullOrWhiteSpace(vehicle.RegistrationNumber))
+                vehicle.RegistrationNumber = null;
+            if (string.IsNullOrWhiteSpace(vehicle.EngineNumber))
+                vehicle.EngineNumber = null;
+            if (string.IsNullOrWhiteSpace(vehicle.ChassisNumber))
+                vehicle.ChassisNumber = null;
+            
+            // VIN is required and should not be null or empty
+            if (string.IsNullOrWhiteSpace(vehicle.VIN))
+            {
+                throw new ArgumentException("VIN is required and cannot be empty.");
+            }
+            vehicle.VIN = vehicle.VIN.Trim();
+            
+            // Validate ModelYearID - if it's 0, it's likely invalid
+            if (vehicle.ModelYearID == 0)
+            {
+                throw new ArgumentException("ModelYearID cannot be 0. Please provide a valid ModelYearID.");
+            }
+            
             //var vehicle = new Vehicle
             //{
             //    VehicleID = 10006,
