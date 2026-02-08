@@ -1,0 +1,191 @@
+{
+  "source": "DevOps",
+  "project": "Garage Management",
+  "lastUpdated": "2025-02-08",
+  "userStories": [
+    {
+      "id": "US-001",
+      "name": "List customers with pagination",
+      "description": "As a garage staff member, I want to view a paginated list of customers so that I can find and manage customer records efficiently.",
+      "acceptanceCriteria": [
+        "Given I am on the customers list, When I open the first page, Then I see up to 20 customers with Id, Name, and Contact details.",
+        "Given there are more than 20 customers, When I request the next page, Then I receive the next set of customers.",
+        "Given a valid pagination request, When the API is called, Then a paginated response is returned."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.Customers",
+      "tags": ["api", "customers", "pagination"]
+    },
+    {
+      "id": "US-002",
+      "name": "Create customer",
+      "description": "As a garage staff member, I want to create a customer record so that customer information can be stored and reused.",
+      "acceptanceCriteria": [
+        "Given valid customer data, When I submit the request, Then a new customer record is created.",
+        "Given required fields are missing, When I submit the request, Then validation errors are returned."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.Customers",
+      "tags": ["api", "customers"]
+    },
+    {
+      "id": "US-010",
+      "name": "Register vehicle",
+      "description": "As a garage staff member, I want to register a vehicle for a customer so that service history can be tracked.",
+      "acceptanceCriteria": [
+        "Given a valid customer exists, When I add a vehicle, Then the vehicle is linked to the customer.",
+        "Given duplicate registration numbers, When I add a vehicle, Then the API prevents duplication."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.Vehicles",
+      "tags": ["api", "vehicles"]
+    },
+    {
+      "id": "US-020",
+      "name": "Create work order",
+      "description": "As a garage staff member, I want to create a work order so that vehicle service work can be tracked.",
+      "acceptanceCriteria": [
+        "Given a valid customer and vehicle, When I create a work order, Then the work order is created with status 'Created'.",
+        "Given service tasks are provided, When the work order is created, Then tasks are linked to the work order."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.WorkOrders",
+      "tags": ["api", "workorder"]
+    },
+    {
+      "id": "US-021",
+      "name": "Assign mechanic to work order",
+      "description": "As a garage manager, I want to assign mechanics to a work order so that responsibility is clearly defined.",
+      "acceptanceCriteria": [
+        "Given a work order exists, When I assign a mechanic, Then the mechanic is linked to the work order.",
+        "Given the mechanic is already assigned, When I assign again, Then duplication is prevented."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.WorkOrders",
+      "tags": ["api", "mechanic"]
+    },
+    {
+      "id": "US-022",
+      "name": "Update work order status",
+      "description": "As a garage staff member, I want to update work order status so that progress can be tracked.",
+      "acceptanceCriteria": [
+        "Given work has started, When status is updated, Then it changes to 'InProgress'.",
+        "Given all tasks are completed, When status is updated, Then it changes to 'Completed'.",
+        "Given work order is not completed, When marking as Delivered, Then the API blocks the action."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.WorkOrders",
+      "tags": ["api", "status"]
+    },
+    {
+      "id": "US-023",
+      "name": "Manage job tasks",
+      "description": "As a mechanic, I want to manage job tasks so that individual services can be tracked.",
+      "acceptanceCriteria": [
+        "Given a work order exists, When I add a task, Then it is linked to the work order.",
+        "Given a task is completed, When I update it, Then its status becomes 'Completed'."
+      ],
+      "priority": "Medium",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.WorkOrders",
+      "tags": ["api", "tasks"]
+    },
+    {
+      "id": "US-024",
+      "name": "Track mechanic labor hours",
+      "description": "As a garage manager, I want to track mechanic labor hours so that labor costs can be calculated.",
+      "acceptanceCriteria": [
+        "Given a mechanic is assigned, When hours are recorded, Then they are saved against the work order.",
+        "Given invalid hours, When submitted, Then validation errors are returned."
+      ],
+      "priority": "Medium",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.WorkOrders",
+      "tags": ["api", "labor"]
+    },
+    {
+      "id": "US-030",
+      "name": "Manage spare parts inventory",
+      "description": "As a garage manager, I want to manage spare parts inventory so that stock levels are accurate.",
+      "acceptanceCriteria": [
+        "Given new stock arrives, When it is added, Then inventory quantity increases.",
+        "Given parts are used, When stock is updated, Then inventory quantity decreases."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.Inventory",
+      "tags": ["api", "inventory"]
+    },
+    {
+      "id": "US-040",
+      "name": "Generate invoice",
+      "description": "As a garage staff member, I want to generate an invoice so that customers can be billed.",
+      "acceptanceCriteria": [
+        "Given a completed work order, When I generate an invoice, Then labor and parts are included.",
+        "Given taxes apply, When invoice is generated, Then taxes are calculated correctly."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.Billing",
+      "tags": ["api", "invoice"]
+    },
+    {
+      "id": "US-041",
+      "name": "Record payment",
+      "description": "As a cashier, I want to record customer payments so that invoice status is updated.",
+      "acceptanceCriteria": [
+        "Given a valid invoice, When payment is recorded, Then payment status is updated.",
+        "Given partial payment, When recorded, Then remaining balance is shown."
+      ],
+      "priority": "High",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.Payments",
+      "tags": ["api", "payments"]
+    },
+    {
+      "id": "US-050",
+      "name": "Manage employees",
+      "description": "As a garage owner, I want to manage employees so that staff information is maintained.",
+      "acceptanceCriteria": [
+        "Given valid employee data, When I create an employee, Then the record is saved.",
+        "Given inactive employees, When disabled, Then they cannot be assigned to work orders."
+      ],
+      "priority": "Medium",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.Employees",
+      "tags": ["api", "employees"]
+    },
+    {
+      "id": "US-060",
+      "name": "View reports dashboard",
+      "description": "As a garage owner, I want to view reports so that I can monitor business performance.",
+      "acceptanceCriteria": [
+        "Given completed jobs exist, When I view reports, Then revenue data is displayed.",
+        "Given date filters are applied, When reports are generated, Then filtered results are shown."
+      ],
+      "priority": "Medium",
+      "state": "New",
+      "sprint": "",
+      "areaPath": "GarageManagement.Reports",
+      "tags": ["api", "reports"]
+    }
+  ]
+}
