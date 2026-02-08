@@ -1,0 +1,25 @@
+﻿# ===========================================
+# Cursor Agent Exclusions - Project Structure & Code
+# ===========================================
+# Files and folders listed here are excluded when the agent
+# reads the project structure and writes code. Use this to
+# keep secrets and environment-specific config out of context.
+# ===========================================
+
+# AppSettings - connection strings, API keys, environment config
+**/appsettings.json
+**/appsettings.*.json
+**/appsettings*.json
+
+# Secrets and credentials
+**/secrets.json
+**/.env
+**/.env.*
+**/*.secrets.json
+**/secrets*.json
+**/*secret*
+**/ConnectionStrings*.json
+
+# User-specific and local overrides (often contain secrets)
+**/launchSettings.json
+**/local.settings.json
