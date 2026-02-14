@@ -11,6 +11,7 @@ When this file is used in agent context (e.g. **@AgentExecuter.md**), follow the
 | User stories (DevOps) | **`output/userstories.json`** |
 | Project structure | **`projectStructure.md`** |
 | Senior .NET Engineer prompt | **`CURSOR_PROMPT_SENIOR_DOTNET_ENGINEER.md`** |
+| Schema export (SQL tables) | **`scripts/schema-export.sql`** (or `scripts/schema-export.txt` if exported there) |
 | Implementation output | **`output/implementation/<UserStoryId>-<Slug>.md`** (see step 6) |
 
 ---
@@ -99,8 +100,9 @@ Do **not** write code yet; only produce a short analysis (you will use it in Ste
 
 1. **`projectStructure.md`** — solution layout, layers, folder structure, patterns.
 2. **`CURSOR_PROMPT_SENIOR_DOTNET_ENGINEER.md`** — architecture rules, Domain/Application/Infrastructure/API rules, naming, and conventions.
+3. **Schema export** — **`scripts/schema-export.sql`** (or `scripts/schema-export.txt`). If the file exists, read it to get the list of SQL tables and their columns (e.g. `CREATE TABLE [schema].[TableName] (...)`). If it does not exist, note that entity design will be based only on the user story and project patterns.
 
-Use this context to align the implementation plan with Onion architecture and existing patterns (e.g. application services, DTOs, repositories, `MappingProfile`, `RepairDbContext`).
+Use this context to align the implementation plan with Onion architecture, existing patterns (e.g. application services, DTOs, repositories, `MappingProfile`, `RepairDbContext`), and the **current database schema** when available.
 
 ---
 
@@ -110,25 +112,37 @@ Use this context to align the implementation plan with Onion architecture and ex
 2. **Create** a markdown file named:  
    **`output/implementation/<UserStoryId>-<ShortSlug>.md`**  
    Example: `output/implementation/US-001-add-customer-export.md`
-3. **Write** the implementation document with at least these sections:
+3. **Entity–schema alignment (before writing the plan):**
+   - **Read** the schema export file (**`scripts/schema-export.sql`** or `scripts/schema-export.txt`). If it is missing, skip the alignment steps below and base entities only on the user story and project patterns.
+   - **Identify** which SQL tables (e.g. `[schema].[TableName]`) are relevant to the user story (by table name, schema, or domain: e.g. `bkg`, `dbo`, `rpa`, `vhc`).
+   - **For each relevant table:**
+     - Check whether a **corresponding Domain entity** already exists in the project (e.g. under `GarageManagement.Domain/Entities/` or equivalent).
+     - **If the entity exists:** Plan to **update** it. Analyse the schema columns vs current entity properties: add missing properties, align types (e.g. `bigint` → `long`, `nvarchar` → `string`, `bit` → `bool`, `datetime2` → `DateTime`), and note any columns to remove or rename. Document the intended changes so that the entity stays in sync with the table; Infrastructure Fluent API and migrations must be updated accordingly.
+     - **If the entity does not exist:** Plan to **create** the entity from the schema. Map each column to a domain property (no EF attributes in Domain); decide table name and schema in Infrastructure (Fluent API). Use rich domain models and value objects where appropriate.
+   - **Document** the outcome in the implementation file (see "Entity–schema alignment" subsection below).
+4. **Write** the implementation document with at least these sections:
 
    - **User story**
      - Id, name, description (copy from JSON).
      - Acceptance criteria (bulleted list from JSON).
    - **Analysis summary**
      - Brief summary of Step 4 (roles, scenarios, scope, affected layers).
+   - **Entity–schema alignment** (when schema export was used)
+     - List of SQL tables relevant to this story.
+     - For each table: **Create** (new entity) or **Update** (existing entity). If update, summarise property/type changes (add, remove, rename, type alignment). If create, note table/schema and key column-to-property mapping.
+     - Ensures the implementation plan and tasks below are consistent with the database schema.
    - **Implementation plan**
-     - **Domain:** New or changed entities/value objects; no EF attributes.
+     - **Domain:** New or changed entities/value objects; no EF attributes. Align with "Entity–schema alignment" (create vs update, property list).
      - **Application:** DTOs, interfaces (repos/services), application service changes, AutoMapper mappings.
-     - **Infrastructure:** Repository implementations, DbContext/Fluent API changes, migrations if needed.
+     - **Infrastructure:** Repository implementations, DbContext/Fluent API changes, migrations if needed (new tables or schema changes).
      - **API:** Controllers, routes, request/response models, status codes.
    - **Tasks** (ordered checklist)
-     - Concrete tasks the developer (or agent) can follow to implement the story (e.g. “Add `CustomerExportDto` in Application/DTOs”, “Add `ExportCustomersAsync` to `ICustomerService` and `CustomerService`”).
+     - Concrete tasks the developer (or agent) can follow. For entities: either "**Create** entity X from table [schema].[TableName]" or "**Update** entity X to match schema (add PropertyY, change type of Z, …)". Then Application, Infrastructure, and API tasks as usual. “Add `CustomerExportDto` in Application/DTOs”, “Add `ExportCustomersAsync` to `ICustomerService` and `CustomerService`”).
    - **References**
-     - Links or paths: `projectStructure.md`, `CURSOR_PROMPT_SENIOR_DOTNET_ENGINEER.md`, and any existing similar feature (e.g. Customer, Vehicle) to mirror.
+     - Links or paths: `projectStructure.md`, `CURSOR_PROMPT_SENIOR_DOTNET_ENGINEER.md`, **`scripts/schema-export.sql`** (when used), and any existing similar feature (e.g. Customer, Vehicle) to mirror.
 
-4. **Confirm** to the user that the file was created and give the path.
-5. **Ask** the user if they want to proceed with implementation (code changes) based on this file, or to process another user story.
+5. **Confirm** to the user that the file was created and give the path.
+6. **Ask** the user if they want to proceed with implementation (code changes) based on this file, or to process another user story.
 
 ---
 
@@ -140,8 +154,8 @@ Use this context to align the implementation plan with Onion architecture and ex
 | 2 | List user stories and ask which one to process (by id). |
 | 3 | Load selected story (name, description, acceptance criteria). |
 | 4 | Analyze description and acceptance criteria (Given/When/Then, scope, layers). |
-| 5 | Read `projectStructure.md` and `CURSOR_PROMPT_SENIOR_DOTNET_ENGINEER.md`. |
-| 6 | Create `output/implementation/<UserStoryId>-<Slug>.md` with user story, analysis, implementation plan, tasks, references. |
+| 5 | Read `projectStructure.md`, `CURSOR_PROMPT_SENIOR_DOTNET_ENGINEER.md`, and **schema export** (`scripts/schema-export.sql` or `.txt`) when available. |
+| 6 | **Entity–schema alignment:** From schema export, identify relevant SQL tables; for each, decide **create** new entity or **update** existing entity (analyse columns vs current properties). Then create `output/implementation/<UserStoryId>-<Slug>.md` with user story, analysis, **entity–schema alignment**, implementation plan, tasks, references. |
 | 7 | Tell the user the file path and ask if they want to implement or pick another story. |
 
 ---

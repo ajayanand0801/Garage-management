@@ -78,7 +78,7 @@ namespace GarageManagement.Application.Interfaces.Validator
   ""title"": ""ServiceRequestDto"",
   ""type"": ""object"",
   ""properties"": {
-    ""ServiceRequestID"": { ""type"": ""integer"" },
+   ""ServiceRequestID"": {  ""type"": [""integer"", ""null""]},
     ""TenantID"": { ""type"": ""integer"" },
     ""OrgID"": { ""type"": ""integer"" },
     ""DomainID"": { ""type"": ""integer"" },
@@ -128,7 +128,7 @@ namespace GarageManagement.Application.Interfaces.Validator
       ]
     },
     ""Booking"": {
-      ""type"": ""object"",
+       ""type"": [""object"", ""null""],
       ""properties"": {
         ""BookingID"": { ""type"": ""integer"" },
         ""BookingNo"": { ""type"": ""string"" },
@@ -175,7 +175,7 @@ namespace GarageManagement.Application.Interfaces.Validator
           ""required"": [""VehicleID"", ""Make"", ""Model"", ""Year"", ""VIN"", ""LicensePlate""]
         },
         ""Quotation"": {
-          ""type"": ""object"",
+           ""type"": [""object"", ""null""],
           ""properties"": {
             ""QuotationID"": { ""type"": ""integer"" },
             ""QuotationNo"": { ""type"": ""string"" },

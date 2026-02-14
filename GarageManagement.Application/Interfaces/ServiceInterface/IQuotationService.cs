@@ -1,4 +1,4 @@
-﻿using ComponentManagement.PaginationUtility;
+using ComponentManagement.PaginationUtility;
 using GarageManagement.Application.DTOs;
 using GarageManagement.Domain.Entites.Quotation;
 using System;
@@ -13,7 +13,7 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
     {
         Task<IEnumerable<QuotationDTO>> GetAllQuotationsAsync();
         Task<QuotationDTO?> GetQuotationByIdAsync(long id);
-        Task<bool> CreateQuotationAsync(long requestID, QuotationDTO quotationRequest);
+        Task<long?> CreateQuotationAsync(long requestID, QuotationDTO quotationRequest);
        Task<bool> UpdateQuotationAsync(long id, QuotationDTO updated);
         Task<bool> DeleteQuotationAsync(long id); // Soft delete
 

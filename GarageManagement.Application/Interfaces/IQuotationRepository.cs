@@ -1,4 +1,4 @@
-﻿using GarageManagement.Domain.Entites.Quotation;
+using GarageManagement.Domain.Entites.Quotation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +19,9 @@ namespace GarageManagement.Application.Interfaces
 
         IQueryable<QuotationItem> GetQuotationByQuoteId(long quoteId);
 
-
+        /// <summary>
+        /// Gets the maximum QuotationId value from the database (for generating the next quotation number).
+        /// </summary>
+        Task<long?> GetMaxQuotationIdAsync();
     }
 }

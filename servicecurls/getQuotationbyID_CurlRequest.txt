@@ -1,0 +1,2 @@
+postman request 'https://localhost:44331/api/Quotation/10004' \
+  --header 'accept: */*'

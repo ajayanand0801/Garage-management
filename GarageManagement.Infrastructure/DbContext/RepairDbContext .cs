@@ -1,7 +1,8 @@
-﻿using GarageManagement.Domain.Entites;
+using GarageManagement.Domain.Entites;
 using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
+using GarageManagement.Domain.Entites.WorkOrder;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -39,6 +40,8 @@ namespace GarageManagement.Infrastructure.DbContext
         //Customer
         public DbSet<Customer> Customers => Set<Customer>();
 
+        //WorkOrder
+        public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -59,6 +62,16 @@ namespace GarageManagement.Infrastructure.DbContext
             modelBuilder.Entity<Quotation>().ToTable("Quotation", "rpa");
             modelBuilder.Entity<QuotationItem>().ToTable("QuotationItem", "rpa");
             modelBuilder.Entity<Customer>().ToTable("Customer", "dbo");
+            modelBuilder.Entity<WorkOrder>().ToTable("WorkOrder", "rpa");
+
+            modelBuilder.Entity<WorkOrder>(entity =>
+            {
+                entity.Property(w => w.OrderGuid)
+                    .IsRequired();
+                entity.Property(w => w.Status)
+                    .HasMaxLength(100)
+                    .HasDefaultValue("Created");
+            });
 
             modelBuilder.Entity<VehicleBrand>()
        .HasAlternateKey(b => b.BrandID);

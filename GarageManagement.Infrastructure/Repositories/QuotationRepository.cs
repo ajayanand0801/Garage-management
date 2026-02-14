@@ -1,4 +1,4 @@
-﻿using GarageManagement.Application.Interfaces;
+using GarageManagement.Application.Interfaces;
 using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Vehicles;
 using GarageManagement.Infrastructure.DbContext;
@@ -41,6 +41,13 @@ namespace GarageManagement.Infrastructure.Repositories
             return _context.QuotationItem
                            .Where(q => q.QuotationID == quoteId && !q.IsDeleted && q.IsActive);
                            
+        }
+
+        public async Task<long?> GetMaxQuotationIdAsync()
+        {
+            return await _context.Quotations
+                .Where(q => !q.IsDeleted && q.IsActive && q.QuotationId != null)
+                .MaxAsync(q => q.QuotationId);
         }
     }
 }

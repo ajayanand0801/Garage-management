@@ -1,0 +1,35 @@
+postman request POST 'https://localhost:44331/api/Quotation/44' \
+  --header 'Content-Type: application/json' \
+  --body '{
+    "QuotationNo": "QT-2025-009",
+    "EstimatedTotal": 500.00,
+    "Currency": "AED",
+    "Discount": 25.00,
+    "Tax": 47.50,
+    "GrandTotal": 522.50,
+    "Status": "Draft",
+    "CreatedBy": "api-user",
+    "QuotationItems": [
+      {
+        "Name": "Oil Change",
+        "PartNumber": "OIL-SYN-5W30",
+        "Description": "Full synthetic oil change",
+        "Quantity": 1,
+        "UnitPrice": 150.00,
+        "TotalPrice": 150.00,
+        "ItemType": "Labour",
+        "Hours": 1.0,
+        "IsOptional": false
+      },
+      {
+        "Name": "Brake Pad Set",
+        "PartNumber": "BRK-PAD-FR",
+        "Description": "Front brake pads",
+        "Quantity": 1,
+        "UnitPrice": 350.00,
+        "TotalPrice": 350.00,
+        "ItemType": "Part",
+        "IsOptional": false
+      }
+    ]
+  }'

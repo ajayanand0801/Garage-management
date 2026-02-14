@@ -15,7 +15,7 @@ namespace GarageManagement.Application.DTOs
         [Required, MinLength(2)]
         public string Name { get; set; } = null!;
 
-        public Guid ItemGuid { get; set; }
+        public Guid? ItemGuid { get; set; }
 
 
         [Required, MinLength(2)]

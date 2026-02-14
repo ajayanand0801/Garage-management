@@ -1,4 +1,4 @@
-﻿using ComponentManagement.PaginationUtility;
+using ComponentManagement.PaginationUtility;
 using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces;
 using GarageManagement.Application.Interfaces.Mapper;
@@ -41,7 +41,7 @@ namespace GarageManagement.Application.Services.Quotations
             _unitOfWork = unitOfWork;
             _paginationService = paginationService;
         }
-        public async Task<bool> CreateQuotationAsync(long requestID,QuotationDTO quotationRequest)
+        public async Task<long?> CreateQuotationAsync(long requestID,QuotationDTO quotationRequest)
         {
             //if (!_jsonValidator.ValidateJsonPayload(quotationDto, _jsonSchema, out List<string> errors))
             //    throw new ValidationException($"Quotation validation failed: {string.Join("; ", errors)}");
@@ -60,8 +60,10 @@ namespace GarageManagement.Application.Services.Quotations
             quotation.ServiceID = 1;
             quotation.ReferenceNo = "323";
             quotation.RequestID= requestID;
-           
-          // quotation.QuotationId = 1;
+
+            // Generate next QuotationId from max in DB
+            var maxQuotationId = await _quotationRepository.GetMaxQuotationIdAsync();
+            quotation.QuotationId = (maxQuotationId ?? 0) + 1;
 
            //quotation.QuotationItems = null;
 
@@ -72,10 +74,12 @@ namespace GarageManagement.Application.Services.Quotations
             try
             {
                 await _unitOfWork.CommitAsync();
+                return quotation.Id;
             }
-            catch (Exception ex) { }
-            return true;
-
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         public async Task<bool> DeleteQuotationAsync(long id)

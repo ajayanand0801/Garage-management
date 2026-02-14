@@ -1,0 +1,39 @@
+{
+    "serviceRequestID": null,
+    "tenantID": 1,
+    "orgID": 1,
+    "domainID": 3100,
+    "domainType": "3100",
+    "serviceID": 0,
+    "serviceType": "Repair",
+    "description": "Oil change and brake inspection",
+    "priority": "Medium",
+    "createdBy": "ajay@test.com",
+    "createdAt": "2025-02-15T09:00:00Z",
+    "customer": {
+        "customerID": 1,
+        "firstName": "Johnson",
+        "lastName": "Doe",
+        "email": "johnson.doe@example.com",
+        "phone": "+971501234567",
+        "mobilePhone": "+971501234567",
+        "address": "123 Main Street",
+        "city": "Dubai",
+        "state": "Dubai",
+        "postalCode": "3323",
+        "country": "India"
+    },
+    "booking": null,
+    "documents": [],
+    "domainData": {
+        "vehicle": {
+            "vehicleID": 10001,
+            "make": "Toyota",
+            "model": "Grand Highlander",
+            "year": 2025,
+            "vin": "JT123456789012345",
+            "licensePlate": "UAE1234"
+        },
+        "quotation": null
+    }
+}

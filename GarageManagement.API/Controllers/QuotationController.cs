@@ -1,4 +1,4 @@
-﻿using ComponentManagement.PaginationUtility;
+using ComponentManagement.PaginationUtility;
 using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces.ServiceInterface;
 using Microsoft.AspNetCore.Http;
@@ -26,8 +26,12 @@ namespace GarageManagement.API.Controllers
         {
             try
             {
-                var result = await _quotationService.CreateQuotationAsync(requestId, quotationRequest);
-                return CreatedAtAction(nameof(GetById), new { id = quotationRequest.QuotationID }, quotationRequest);
+                var createdId = await _quotationService.CreateQuotationAsync(requestId, quotationRequest);
+                if (!createdId.HasValue || createdId.Value == 0)
+                    return StatusCode(500, new { message = "Quotation could not be created." });
+
+                var createdQuotation = await _quotationService.GetQuotationByIdAsync(createdId.Value);
+                return CreatedAtAction(nameof(GetById), new { id = createdId.Value }, createdQuotation);
             }
             catch (ValidationException ex)
             {

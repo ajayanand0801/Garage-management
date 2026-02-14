@@ -63,6 +63,7 @@ builder.Services.AddScoped<IVehicleLookupRepository, VehicleLookupRepository>();
 builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
 builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -73,6 +74,7 @@ builder.Services.AddScoped<IVehicleLookupService, VehicleLookupService>();
 builder.Services.AddScoped<IServiceRequest, ServiceRequestService>();
 builder.Services.AddScoped<IQuotationService, QuotationService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IWorkOrderService, WorkOrderService>();
 
 // Validator
 builder.Services.AddScoped<IJsonValidator, JsonValidator>();

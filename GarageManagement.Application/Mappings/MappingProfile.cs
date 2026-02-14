@@ -1,9 +1,10 @@
-﻿using AutoMapper;
+using AutoMapper;
 using GarageManagement.Application.DTOs;
 using GarageManagement.Domain.Entites;
 using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
+using GarageManagement.Domain.Entites.WorkOrder;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -476,6 +477,24 @@ namespace GarageManagement.Application.Mappings
                 .ForMember(dest => dest.ModelYearID, opt => opt.MapFrom(src => src.ModelYearID))
                 .ForMember(dest => dest.ModelYear, opt => opt.MapFrom(src => src.ModelYear));
 
+            // WorkOrder: CreateWorkOrderRequestDto -> WorkOrder (service sets OrderGuid, Status, audit fields)
+            CreateMap<CreateWorkOrderRequestDto, WorkOrder>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderGuid, opt => opt.Ignore())
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.TenantID, opt => opt.Ignore())
+                .ForMember(dest => dest.OrgID, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.ModifiedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.ModifiedBy, opt => opt.Ignore())
+                .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+                .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+                .ForMember(dest => dest.ActualStart, opt => opt.Ignore())
+                .ForMember(dest => dest.ActualEnd, opt => opt.Ignore());
+
+            // WorkOrder -> WorkOrderDto
+            CreateMap<WorkOrder, WorkOrderDto>();
         }
     }
 

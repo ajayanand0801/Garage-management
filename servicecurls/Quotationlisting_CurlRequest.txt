@@ -1,0 +1,21 @@
+postman request POST 'https://localhost:44331/api/Quotation/paginated' \
+  --header 'accept: */*' \
+  --header 'Content-Type: application/json' \
+  --body '{
+  "skip": 0,
+  "take": 5,
+  "filters": [
+    {
+      "field": "string",
+      "operation": "string",
+      "value": "string",
+      "logicalOperator": "string"
+    }
+  ],
+  "sorts": [
+    {
+      "field": "string",
+      "direction": "string"
+    }
+  ]
+}'

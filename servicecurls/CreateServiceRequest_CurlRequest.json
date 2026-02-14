@@ -1,0 +1,45 @@
+postman request POST 'https://localhost:44331/api/ServiceRequest' \
+  --header 'Content-Type: application/json' \
+  --body '{
+    "ServiceId":0,
+    "domainType":"3100",
+    "ServiceType": "Repair",
+    "Description": "Oil change and brake inspection",
+    "Priority": "Medium",
+    "tenantId":1,
+     "domainId":3100,
+      "orgId":1,
+      "CreatedBy":"ajay@test.com",
+      "createdAt":"2025-02-15T09:00:00Z",
+      
+       "Booking": null,
+    "Customer": {
+        "CustomerID":"1",
+      "FirstName": "Johnson",
+      "LastName": "Doe",
+      "Email": "johnson.doe@example.com",
+      "Phone": "+971501234567",
+      "MobilePhone": "+971501234567",
+      "Address": "123 Main Street",
+      "City": "Dubai",
+      "State": "Dubai",
+      "PostalCode":"3323",
+      "Country":"India"
+
+
+    },
+   
+    "DomainData": {
+      "Vehicle": {
+        "VehicleId":"10001",
+        "Make": "Toyota",
+        "Model": "Grand Highlander",
+        "Year": 2025,
+        "VIN": "JT123456789012345",
+        "LicensePlate":"UAE1234",
+        "quotation":null
+
+
+      }
+    }
+  }'
