@@ -1,0 +1,22 @@
+curl -X 'POST' \
+  'https://localhost:44331/api/ServiceRequest/paginated' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "skip": 0,
+  "take": 16,
+  "filters": [
+    {
+      "field": "createdby",
+      "operation": "eq",
+      "value": "ajay@test.com",
+      "logicalOperator": "and"
+    }
+  ],
+  "sorts": [
+    {
+      "field": "createdDate",
+      "direction": "desc"
+    }
+  ]
+}'

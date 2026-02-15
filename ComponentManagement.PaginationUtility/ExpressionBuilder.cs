@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,102 +43,114 @@ namespace ComponentManagement.PaginationUtility
 
         private static Expression? BuildSinglePredicate<T>(ParameterExpression parameter, FilterField filter)
         {
-            // Detect nested collection: if there's a dot
+            var flags = BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+            // Nested path: "parent.child" (single navigation) or "parentCollection.child" (collection Any)
             if (!string.IsNullOrWhiteSpace(filter.Field) && filter.Field.Contains("."))
             {
                 var parts = filter.Field.Split('.', 2);
-                var collectionPropName = parts[0];
+                var parentPropName = parts[0];
                 var nestedPropName = parts[1];
 
-                var collectionProp = typeof(T).GetProperty(collectionPropName,
-                    BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-                if (collectionProp == null)
+                var parentProp = typeof(T).GetProperty(parentPropName, flags);
+                if (parentProp == null)
                     return null;
 
-                // Determine element type in collection
-                Type? elementType = null;
-                var collectionType = collectionProp.PropertyType;
-                if (typeof(IEnumerable).IsAssignableFrom(collectionType))
+                var parentType = parentProp.PropertyType;
+                var isCollection = parentType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(parentType);
+
+                if (isCollection)
                 {
-                    if (collectionType.IsGenericType)
-                        elementType = collectionType.GetGenericArguments()[0];
+                    // Collection: e.g. vehicleMetaData.Make -> Any(v => v.Make == value)
+                    Type? elementType = null;
+                    if (parentType.IsGenericType)
+                        elementType = parentType.GetGenericArguments()[0];
                     else
                     {
-                        var iface = collectionType.GetInterfaces()
+                        var iface = parentType.GetInterfaces()
                             .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
                         if (iface != null)
                             elementType = iface.GetGenericArguments()[0];
                     }
-                }
-                if (elementType == null)
-                    return null;
-
-                // Get nested property info
-                var nestedPropInfo = elementType.GetProperty(nestedPropName,
-                    BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-                if (nestedPropInfo == null)
-                    return null;
-
-                // Build inner parameter
-                var innerParam = Expression.Parameter(elementType, "c");
-                var nestedMember = Expression.Property(innerParam, nestedPropInfo);
-
-                var nonNullableNestedType = Nullable.GetUnderlyingType(nestedPropInfo.PropertyType) ?? nestedPropInfo.PropertyType;
-                var typedValue = ConvertFilterValue(filter.Value, nonNullableNestedType);
-                if (typedValue == null)
-                    return null;
-
-                var constant = Expression.Constant(typedValue, nonNullableNestedType);
-
-                // If nested property is nullable
-                Expression nestedMemberExpr = nestedMember;
-                if (Nullable.GetUnderlyingType(nestedPropInfo.PropertyType) != null)
-                    nestedMemberExpr = Expression.Convert(nestedMember, nonNullableNestedType);
-
-                Expression? innerExpr = null;
-
-                var operation = NormalizeOperation(filter.Operation);
-                switch (operation)
-                {
-                    case "eq":
-                        innerExpr = Expression.Equal(nestedMemberExpr, constant);
-                        break;
-                    case "ne":
-                        innerExpr = Expression.NotEqual(nestedMemberExpr, constant);
-                        break;
-                    case "contains":
-                        if (nonNullableNestedType == typeof(string))
-                        {
-                            var method = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-                            if (method != null)
-                                innerExpr = Expression.Call(nestedMember, method, constant);
-                        }
-                        break;
-                    // you can handle startswith, endswith similarly
-                    default:
+                    if (elementType == null)
                         return null;
+
+                    var nestedPropInfo = elementType.GetProperty(nestedPropName, flags);
+                    if (nestedPropInfo == null)
+                        return null;
+
+                    var innerParam = Expression.Parameter(elementType, "c");
+                    var nestedMember = Expression.Property(innerParam, nestedPropInfo);
+
+                    var nonNullableNestedType = Nullable.GetUnderlyingType(nestedPropInfo.PropertyType) ?? nestedPropInfo.PropertyType;
+                    var typedValue = ConvertFilterValue(filter.Value, nonNullableNestedType);
+                    if (typedValue == null)
+                        return null;
+
+                    var constant = Expression.Constant(typedValue, nonNullableNestedType);
+                    Expression nestedMemberExpr = nestedMember;
+                    if (Nullable.GetUnderlyingType(nestedPropInfo.PropertyType) != null)
+                        nestedMemberExpr = Expression.Convert(nestedMember, nonNullableNestedType);
+
+                    var operation = NormalizeOperation(filter.Operation);
+                    Expression? innerExpr = operation switch
+                    {
+                        "eq" => Expression.Equal(nestedMemberExpr, constant),
+                        "ne" => Expression.NotEqual(nestedMemberExpr, constant),
+                        "contains" => BuildStringContains(nestedMember, constant),
+                        _ => null
+                    };
+                    if (innerExpr == null)
+                        return null;
+
+                    var lambdaInner = Expression.Lambda(innerExpr, innerParam);
+                    var collectionMember = Expression.Property(parameter, parentProp);
+                    var anyMethod = typeof(Enumerable)
+                        .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                        .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
+                        .MakeGenericMethod(elementType);
+                    return Expression.Call(anyMethod, collectionMember, lambdaInner);
                 }
+                else
+                {
+                    // Single navigation: e.g. customerMetaData.Email -> customerMetaData != null && customerMetaData.Email == value
+                    var nestedPropInfo = parentType.GetProperty(nestedPropName, flags);
+                    if (nestedPropInfo == null)
+                        return null;
 
-                if (innerExpr == null)
-                    return null;
+                    var parentMember = Expression.Property(parameter, parentProp);
+                    var childMember = Expression.Property(parentMember, nestedPropInfo);
 
-                var lambdaInner = Expression.Lambda(innerExpr, innerParam);
+                    var propType = nestedPropInfo.PropertyType;
+                    var nonNullableType = Nullable.GetUnderlyingType(propType) ?? propType;
+                    var typedValue = ConvertFilterValue(filter.Value, nonNullableType);
+                    if (typedValue == null)
+                        return null;
 
-                var collectionMember = Expression.Property(parameter, collectionProp);
-                var anyMethod = typeof(Enumerable)
-                    .GetMethods(BindingFlags.Static | BindingFlags.Public)
-                    .First(m => m.Name == "Any" && m.GetParameters().Length == 2)
-                    .MakeGenericMethod(elementType);
+                    var constant = Expression.Constant(typedValue, nonNullableType);
+                    Expression childExpr = childMember;
+                    if (Nullable.GetUnderlyingType(propType) != null)
+                        childExpr = Expression.Convert(childMember, nonNullableType);
 
-                var anyCall = Expression.Call(anyMethod, collectionMember, lambdaInner);
+                    var operation = NormalizeOperation(filter.Operation);
+                    Expression? comparison = operation switch
+                    {
+                        "eq" => Expression.Equal(childExpr, constant),
+                        "ne" => Expression.NotEqual(childExpr, constant),
+                        "contains" => BuildStringContains(childMember, constant),
+                        _ => null
+                    };
+                    if (comparison == null)
+                        return null;
 
-                return anyCall;
+                    var parentNotNull = Expression.NotEqual(parentMember, Expression.Constant(null, parentType));
+                    return Expression.AndAlso(parentNotNull, comparison);
+                }
             }
             else
             {
                 // Simple (non-nested) property
-                var propInfo = typeof(T).GetProperty(filter.Field,
-                    BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                var propInfo = typeof(T).GetProperty(filter.Field, flags);
 
                 if (propInfo == null)
                     return null;
@@ -173,19 +185,20 @@ namespace ComponentManagement.PaginationUtility
                         return Expression.LessThanOrEqual(memberExpr, constant);
                     case "contains":
                         if (nonNullableType == typeof(string))
-                        {
-                            var method = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-                            if (method != null)
-                                return Expression.Call(member, method, constant);
-                        }
+                            return BuildStringContains(member, constant);
                         break;
-                    // Add in / notin / range etc if needed
                     default:
                         return null;
                 }
 
                 return null;
             }
+        }
+
+        private static Expression? BuildStringContains(Expression stringMember, ConstantExpression constant)
+        {
+            var method = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+            return method != null ? Expression.Call(stringMember, method, constant) : null;
         }
 
         private static object? ConvertFilterValue(object? value, Type targetType)

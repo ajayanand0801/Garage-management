@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.DTOs;
+using ComponentManagement.PaginationUtility;
+using GarageManagement.Application.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +12,6 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
     {
         Task<bool> Create(ServiceRequestDto request);
 
+        Task<PaginationResult<ServiceListDto>> GetServiceRequestsAsync(PaginationRequest request, CancellationToken cancellationToken = default);
     }
 }

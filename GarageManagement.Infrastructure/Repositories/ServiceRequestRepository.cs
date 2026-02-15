@@ -1,4 +1,4 @@
-﻿using GarageManagement.Application.Interfaces;
+using GarageManagement.Application.Interfaces;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Infrastructure.DbContext;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +17,14 @@ namespace GarageManagement.Infrastructure.Repositories
         public ServiceRequestRepository(RepairDbContext context) : base(context)
         {
             _context = context;
+        }
+
+        public IQueryable<ServiceRequest> GetQueryableForList()
+        {
+            return _context.ServiceRequests
+                .Where(sr => sr.IsActive && !sr.IsDeleted)
+                .Include(sr => sr.customerMetaData)
+                .Include(sr => sr.vehicleMetaData);
         }
 
         public async Task<IEnumerable<ServiceRequest>> GetAllActiveRequestsAsync()

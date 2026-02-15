@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.DTOs;
+using ComponentManagement.PaginationUtility;
+using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces.ServiceInterface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +12,23 @@ namespace GarageManagement.API.Controllers
     public class ServiceRequestController : ControllerBase
     {
         private readonly IServiceRequest _serviceRequest;
+
         public ServiceRequestController(IServiceRequest serviceRequest)
         {
             _serviceRequest = serviceRequest;
+        }
+
+        /// <summary>
+        /// Get paginated list of service requests.
+        /// </summary>
+        [HttpPost("paginated")]
+        public async Task<IActionResult> GetServiceRequests([FromBody] PaginationRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null)
+                return BadRequest("Invalid request payload.");
+
+            var paginatedResult = await _serviceRequest.GetServiceRequestsAsync(request, cancellationToken);
+            return Ok(paginatedResult);
         }
 
         [HttpPost]
@@ -40,8 +55,6 @@ namespace GarageManagement.API.Controllers
                     error = ex.Message
                 });
             }
-        
+        }
     }
-
-}
 }

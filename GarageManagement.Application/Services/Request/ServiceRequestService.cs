@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.DTOs;
+using ComponentManagement.PaginationUtility;
+using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces;
 using GarageManagement.Application.Interfaces.Mapper;
 using GarageManagement.Application.Interfaces.ServiceInterface;
@@ -20,7 +21,8 @@ namespace GarageManagement.Application.Services.Request
         private readonly IGenericRepository<ServiceRequest> _serviceRequestRepo;
         private readonly IGenericRepository<ServiceRequestDocument> _documentRepo;
         private readonly IGenericRepository<ServiceRequestMetadata> _metadataRepo;
-
+        private readonly IServiceRequestRepository _serviceRequestRepository;
+        private readonly IPaginationService<ServiceRequest> _paginationService;
         private readonly IMapperUtility _mapperUtility;
         private readonly IUnitOfWork _unitOfWork;
 
@@ -32,6 +34,8 @@ namespace GarageManagement.Application.Services.Request
          IGenericRepository<ServiceRequest> serviceRequestRepo,
          IGenericRepository<ServiceRequestDocument> documentRepo,
          IGenericRepository<ServiceRequestMetadata> metadataRepo,
+         IServiceRequestRepository serviceRequestRepository,
+         IPaginationService<ServiceRequest> paginationService,
          IMapperUtility mapperUtility,
          IUnitOfWork unitOfWork)
         {
@@ -39,6 +43,8 @@ namespace GarageManagement.Application.Services.Request
             _serviceRequestRepo = serviceRequestRepo;
             _documentRepo = documentRepo;
             _metadataRepo = metadataRepo;
+            _serviceRequestRepository = serviceRequestRepository;
+            _paginationService = paginationService;
             _mapperUtility = mapperUtility;
             _unitOfWork = unitOfWork;
         }
@@ -107,6 +113,121 @@ namespace GarageManagement.Application.Services.Request
             // You can add more logic here (e.g., metadata) if needed
 
             return true;
+        }
+
+        public async Task<PaginationResult<ServiceListDto>> GetServiceRequestsAsync(PaginationRequest request, CancellationToken cancellationToken = default)
+        {
+            IQueryable<ServiceRequest> query = _serviceRequestRepository.GetQueryableForList();
+
+            var normalizedRequest = NormalizeServiceRequestPaginationRequest(request);
+
+            var pagedResult = await _paginationService.PaginateAsync(
+                query,
+                normalizedRequest,
+                cancellationToken);
+
+            var mappedItems = pagedResult.Items
+                .Select(sr => _mapperUtility.Map<ServiceRequest, ServiceListDto>(sr))
+                .ToList();
+
+            return new PaginationResult<ServiceListDto>
+            {
+                Items = mappedItems,
+                TotalCount = pagedResult.TotalCount
+            };
+        }
+
+        /// <summary>
+        /// Maps client/DTO-style field names to ServiceRequest entity property names so sorting and filtering work.
+        /// </summary>
+        private static PaginationRequest NormalizeServiceRequestPaginationRequest(PaginationRequest request)
+        {
+            // Map client/DTO field names to ServiceRequest entity paths (own properties + joined customerMetaData / vehicleMetaData)
+            var fieldToEntityProperty = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                // ServiceRequest (and BaseEntity) own properties
+                { "createdDate", "CreatedAt" },
+                { "serviceRequestID", "Id" },
+                { "id", "Id" },
+                { "tenantId", "TenantID" },
+                { "orgId", "OrgID" },
+                { "domainId", "DomainID" },
+                { "isActive", "IsActive" },
+                { "serviceType", "ServiceType" },
+                { "domainType", "DomainType" },
+                { "status", "Status" },
+                { "priority", "Priority" },
+                { "createdBy", "CreatedBy" },
+                { "requestNo", "RequestNo" },
+                { "description", "Description" },
+                { "modifiedAt", "ModifiedAt" },
+                { "modifiedBy", "ModifiedBy" },
+                // SRCustomerMetaData (customerMetaData) - joined table
+                { "email", "customerMetaData.Email" },
+                { "phone", "customerMetaData.Phone" },
+                { "mobileNo", "customerMetaData.MobileNo" },
+                { "firstName", "customerMetaData.FirstName" },
+                { "lastName", "customerMetaData.LastName" },
+                { "customerName", "customerMetaData.FirstName" },
+                { "address", "customerMetaData.Address" },
+                { "city", "customerMetaData.City" },
+                { "state", "customerMetaData.State" },
+                { "country", "customerMetaData.Country" },
+                { "postalCode", "customerMetaData.PostalCode" },
+                { "companyName", "customerMetaData.CompanyName" },
+                // SRVehicleMetaData (vehicleMetaData) - joined collection
+                { "make", "vehicleMetaData.Make" },
+                { "model", "vehicleMetaData.Model" },
+                { "year", "vehicleMetaData.Year" },
+                { "vin", "vehicleMetaData.VIN" },
+                { "licensePlate", "vehicleMetaData.LicensePlate" },
+                { "vehicleVin", "vehicleMetaData.VIN" },
+                { "ownerName", "vehicleMetaData.OwnerName" }
+            };
+
+            var modifiedRequest = new PaginationRequest
+            {
+                Skip = request.Skip,
+                Take = request.Take,
+                Filters = new List<FilterField>(),
+                Sorts = new List<SortField>()
+            };
+
+            if (request.Sorts != null)
+            {
+                foreach (var sort in request.Sorts)
+                {
+                    if (string.IsNullOrWhiteSpace(sort.Field)) continue;
+                    var entityField = fieldToEntityProperty.TryGetValue(sort.Field.Trim(), out var mapped)
+                        ? mapped
+                        : sort.Field;
+                    modifiedRequest.Sorts.Add(new SortField
+                    {
+                        Field = entityField,
+                        Direction = sort.Direction ?? "asc"
+                    });
+                }
+            }
+
+            if (request.Filters != null)
+            {
+                foreach (var filter in request.Filters)
+                {
+                    if (string.IsNullOrWhiteSpace(filter.Field)) continue;
+                    var entityField = fieldToEntityProperty.TryGetValue(filter.Field.Trim(), out var mapped)
+                        ? mapped
+                        : filter.Field;
+                    modifiedRequest.Filters.Add(new FilterField
+                    {
+                        Field = entityField,
+                        Operation = filter.Operation ?? "eq",
+                        Value = filter.Value,
+                        LogicalOperator = filter.LogicalOperator ?? "and"
+                    });
+                }
+            }
+
+            return modifiedRequest;
         }
 
         public async Task StoreCustomerMetadataAsync(ServiceRequest serviceRequest, CustomerDto customer)

@@ -182,6 +182,57 @@ namespace GarageManagement.Application.Mappings
     .ForMember(dest => dest.UploadedAt, opt => opt.MapFrom(src => src.CreatedAt))
     .ForMember(dest => dest.UploadedBy, opt => opt.MapFrom(src => src.CreatedBy));
 
+            // ServiceRequest -> ServiceListDto (for paginated list)
+            // Customer/vehicle fields set in AfterMap to avoid expression-tree limits (block body, ?. operator)
+            CreateMap<ServiceRequest, ServiceListDto>()
+                .ForMember(dest => dest.ServiceRequestID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.ServiceType, opt => opt.MapFrom(src => src.ServiceType))
+                .ForMember(dest => dest.DomainType, opt => opt.MapFrom(src => src.DomainType))
+                .ForMember(dest => dest.CustomerName, opt => opt.Ignore())
+                .ForMember(dest => dest.Email, opt => opt.Ignore())
+                .ForMember(dest => dest.Phone, opt => opt.Ignore())
+                .ForMember(dest => dest.MobileNo, opt => opt.Ignore())
+                .ForMember(dest => dest.Vehicle, opt => opt.Ignore())
+                .ForMember(dest => dest.Make, opt => opt.Ignore())
+                .ForMember(dest => dest.Model, opt => opt.Ignore())
+                .ForMember(dest => dest.Year, opt => opt.Ignore())
+                .ForMember(dest => dest.Vin, opt => opt.Ignore())
+                .ForMember(dest => dest.LicensePlate, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
+                .ForMember(dest => dest.TenantId, opt => opt.MapFrom(src => src.TenantID))
+                .ForMember(dest => dest.OrgID, opt => opt.MapFrom(src => src.OrgID))
+                .ForMember(dest => dest.DomainId, opt => opt.MapFrom(src => src.DomainID))
+                .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedAt))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .AfterMap((src, dest) =>
+                {
+                    if (src.customerMetaData != null)
+                    {
+                        var name = string.Join(" ", new[] { src.customerMetaData.FirstName, src.customerMetaData.LastName }
+                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                            .Select(s => s!.Trim())).Trim();
+                        dest.CustomerName = string.IsNullOrEmpty(name) ? null : name;
+                        dest.Email = src.customerMetaData.Email;
+                        dest.Phone = src.customerMetaData.Phone;
+                        dest.MobileNo = src.customerMetaData.MobileNo;
+                    }
+                    else if (src.vehicleMetaData != null && src.vehicleMetaData.Any())
+                    {
+                        dest.Email = src.vehicleMetaData.First().Email;
+                    }
+
+                    if (src.vehicleMetaData != null && src.vehicleMetaData.Any())
+                    {
+                        var v = src.vehicleMetaData.First();
+                        dest.Vehicle = $"{v.Make}/{v.Model}/{v.Year}";
+                        dest.Make = v.Make;
+                        dest.Model = v.Model;
+                        dest.Year = v.Year;
+                        dest.Vin = v.VIN;
+                        dest.LicensePlate = v.LicensePlate;
+                    }
+                });
+
 
             CreateMap<CustomerDto, ServiceRequestVehicleMetaData>()
     .ForMember(dest => dest.OwnerName, opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}".Trim()))
