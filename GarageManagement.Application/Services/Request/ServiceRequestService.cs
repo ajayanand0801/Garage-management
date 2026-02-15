@@ -189,6 +189,11 @@ namespace GarageManagement.Application.Services.Request
             return dto;
         }
 
+        public async Task<bool> DeleteServiceRequestAsync(long id)
+        {
+            return await _serviceRequestRepo.SoftDelete(id);
+        }
+
         /// <summary>
         /// Maps client/DTO-style field names to ServiceRequest entity property names so sorting and filtering work.
         /// </summary>

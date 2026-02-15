@@ -23,5 +23,10 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
         /// Updates service request by id. Updates ServiceRequest, SRCustomerMetaData, SRVehicleMetaData and ServiceRequestMetadata (JSON) as provided.
         /// </summary>
         Task<bool> UpdateByServiceRequestId(long serviceRequestId, ServiceRequestDto request, string? modifiedBy = null);
+
+        /// <summary>
+        /// Soft delete a service request (sets IsActive = 0).
+        /// </summary>
+        Task<bool> DeleteServiceRequestAsync(long id);
     }
 }

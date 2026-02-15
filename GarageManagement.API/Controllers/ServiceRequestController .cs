@@ -45,6 +45,19 @@ namespace GarageManagement.API.Controllers
         }
 
         /// <summary>
+        /// Soft delete a service request (sets IsActive = 0).
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(long id)
+        {
+            var result = await _serviceRequest.DeleteServiceRequestAsync(id);
+            if (!result)
+                return NotFound(new { message = $"Service request with ID {id} not found or already deleted." });
+
+            return Ok(new { success = true, message = "Service request deleted successfully." });
+        }
+
+        /// <summary>
         /// Update service request by ID. Updates vehicle and customer sections and all related tables (ServiceRequest, SRCustomerMetaData, SRVehicleMetaData, ServiceRequestMetadata).
         /// </summary>
         [HttpPut("{serviceRequestId}")]
