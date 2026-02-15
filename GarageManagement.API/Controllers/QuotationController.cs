@@ -119,6 +119,18 @@ namespace GarageManagement.API.Controllers
             return Ok(new { success = result });
         }
 
+        /// <summary>
+        /// Soft delete a specific quotation item by quotation ID and item ID.
+        /// </summary>
+        [HttpDelete("{quotationId:long}/items/{itemId:long}")]
+        public async Task<IActionResult> DeleteItem(long quotationId, long itemId)
+        {
+            var result = await _quotationService.DeleteQuotationItemAsync(quotationId, itemId);
+            if (!result)
+                return NotFound(new { message = $"Quotation item with ID {itemId} not found for quotation {quotationId}, or already deleted." });
+
+            return Ok(new { success = true, message = "Quotation item deleted successfully." });
+        }
 
         [HttpPost("paginated")]
         public async Task<IActionResult> GetAllQuotations([FromBody] PaginationRequest request, CancellationToken cancellationToken)
@@ -129,6 +141,26 @@ namespace GarageManagement.API.Controllers
             var paginatedResult = await _quotationService.GetAllQuotationsAsync(request, cancellationToken);
 
             return Ok(paginatedResult);
+        }
+
+        /// <summary>
+        /// Update quotation status. Allowed values: Approved, Rejected. RejectionNotes required when Rejected.
+        /// </summary>
+        [HttpPut("{id:long}/status")]
+        public async Task<IActionResult> UpdateStatus(long id, [FromBody] UpdateQuotationStatusRequest request)
+        {
+            if (request == null)
+                return BadRequest(new { message = "Request body is required." });
+
+            var (success, errorMessage) = await _quotationService.UpdateQuotationStatusAsync(id, request);
+
+            if (!string.IsNullOrEmpty(errorMessage))
+                return BadRequest(new { message = errorMessage });
+
+            if (!success)
+                return NotFound(new { message = $"Quotation with ID {id} not found." });
+
+            return Ok(new { success = true, message = "Quotation status updated successfully." });
         }
 
         /// <summary>

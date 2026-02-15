@@ -1,4 +1,4 @@
-﻿using GarageManagement.Application.Interfaces;
+using GarageManagement.Application.Interfaces;
 using GarageManagement.Infrastructure.DbContext;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -36,6 +36,14 @@ namespace GarageManagement.Infrastructure.Repositories
 
             if (queryFunc != null)
                 query = queryFunc(query);
+
+            // When entity has IsActive and IsDeleted (e.g. BaseEntity), return only active and not-deleted rows
+            var hasIsActive = typeof(T).GetProperty("IsActive") != null;
+            var hasIsDeleted = typeof(T).GetProperty("IsDeleted") != null;
+            if (hasIsActive && hasIsDeleted)
+            {
+                query = query.Where(e => EF.Property<bool>(e, "IsActive") == true && EF.Property<bool>(e, "IsDeleted") == false);
+            }
 
             // Assuming PK property is "Id" of type long
             return await query.FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id);

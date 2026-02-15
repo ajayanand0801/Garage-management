@@ -24,6 +24,10 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
 
         Task<bool> DeleteQuotationItemAsync(long quotationId, long id); // Soft delete
 
+        /// <summary>
+        /// Updates quotation status to Approved or Rejected. RejectionNotes required when Rejected.
+        /// </summary>
+        Task<(bool Success, string? ErrorMessage)> UpdateQuotationStatusAsync(long id, UpdateQuotationStatusRequest request);
 
         // Optionally, methods for items
         //  Task<bool> AddQuotationItemAsync(long quotationId, QuotationItemDTO itemDto);

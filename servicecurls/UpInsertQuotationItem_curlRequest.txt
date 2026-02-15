@@ -1,0 +1,24 @@
+curl -X 'PUT' \
+  'https://localhost:44331/api/Quotation/4/items' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '[
+  {
+   
+      "name": "replace bumper",
+      "itemGuid": null,
+      "partNumber": "part-SYN-5W30",
+      "description": "bumper replace",
+      "quantity": 1,
+      "unitPrice": 3000,
+      "totalPrice": 3000,
+      "itemType": "Labour",
+      "code": "bumper-SYN-5W30",
+      "hours": 0,
+      "discountAmount": 0,
+      "taxAmount": 0,
+      "netTotal": 3000
+      
+     
+    }
+]'

@@ -1,5 +1,6 @@
 using ComponentManagement.PaginationUtility;
 using GarageManagement.Application.DTOs;
+using GarageManagement.Application.Enums;
 using GarageManagement.Application.Interfaces;
 using GarageManagement.Application.Interfaces.Mapper;
 using GarageManagement.Application.Interfaces.ServiceInterface;
@@ -91,12 +92,44 @@ namespace GarageManagement.Application.Services.Quotations
 
         public async Task<bool> DeleteQuotationItemAsync(long quotationId, long id)
         {
-           // _quotationGenericRepo.get
-            var result = await Task.Run(() => _quotationGenericRepo.SoftDelete(id));
+            var item = await _unitOfWork.QuotationItem.GetByIdAsync(id);
+            if (item == null)
+                return false;
+            if (item.QuotationID != quotationId)
+                return false;
 
-            return result;
+            return await _unitOfWork.QuotationItem.SoftDelete(id);
+        }
 
+        public async Task<(bool Success, string? ErrorMessage)> UpdateQuotationStatusAsync(long id, UpdateQuotationStatusRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Status))
+                return (false, "Status is required.");
 
+            if (!QuotationStatusExtensions.TryParseFromRequest(request.Status, out var status))
+                return (false, "Status must be either Approved or Rejected.");
+
+            if (status == QuotationStatus.Rejected && string.IsNullOrWhiteSpace(request.RejectionNotes))
+                return (false, "RejectionNotes is required when status is Rejected.");
+
+            var quotation = await _quotationGenericRepo.GetByIdAsync(id);
+            if (quotation == null)
+                return (false, null);
+
+            // Once approved, quotation cannot be rejected again
+            var currentStatus = (quotation.Status ?? string.Empty).Trim().ToLowerInvariant();
+            if (currentStatus == "approved" && status == QuotationStatus.Rejected)
+                return (false, "A quotation that is already approved cannot be rejected.");
+
+            quotation.Status = status.ToStorageValue();
+            quotation.ModifiedAt = DateTime.UtcNow;
+            quotation.ModifiedBy = "System";
+
+            if (status == QuotationStatus.Rejected)
+                quotation.Notes = request.RejectionNotes?.Trim();
+
+            var updated = await _quotationGenericRepo.UpdateAsync(quotation);
+            return (updated, null);
         }
 
         public Task<IEnumerable<QuotationDTO>> GetAllQuotationsAsync()
