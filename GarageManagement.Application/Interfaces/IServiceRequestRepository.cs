@@ -18,6 +18,11 @@ namespace GarageManagement.Application.Interfaces
 
         Task<IEnumerable<ServiceRequest>> GetAllActiveRequestsAsync();
         Task<ServiceRequest?> GetRequestWithDetailsAsync(long requestId);
+
+        /// <summary>
+        /// Gets service request by id with customer, vehicle metadata and JSON metadata for update.
+        /// </summary>
+        Task<ServiceRequest?> GetByIdWithCustomerVehicleAndMetadataAsync(long requestId);
         Task<string?> GetRequestStatusAsync(long requestId);
         Task<long> GetMaxServiceRequestIdAsync();
         //Task<ServiceRequestDto> CreateServiceRequest();

@@ -42,6 +42,16 @@ namespace GarageManagement.Infrastructure.Repositories
                 .FirstOrDefaultAsync(sr => sr.Id == requestId);
         }
 
+        public async Task<ServiceRequest?> GetByIdWithCustomerVehicleAndMetadataAsync(long requestId)
+        {
+            return await _context.ServiceRequests
+                .Include(sr => sr.customerMetaData)
+                .Include(sr => sr.vehicleMetaData)
+                .Include(sr => sr.MetadataEntries)
+                .Include(sr => sr.Documents)
+                .FirstOrDefaultAsync(sr => sr.Id == requestId && !sr.IsDeleted);
+        }
+
         public async Task<string?> GetRequestStatusAsync(long requestId)
         {
             return await _context.ServiceRequests

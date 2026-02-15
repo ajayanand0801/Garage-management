@@ -31,6 +31,35 @@ namespace GarageManagement.API.Controllers
             return Ok(paginatedResult);
         }
 
+        /// <summary>
+        /// Get service request by ID with full details (customer, vehicle, documents, metadata).
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(long id)
+        {
+            var result = await _serviceRequest.GetByIdAsync(id);
+            if (result == null)
+                return NotFound(new { message = $"Service request with ID {id} not found." });
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Update service request by ID. Updates vehicle and customer sections and all related tables (ServiceRequest, SRCustomerMetaData, SRVehicleMetaData, ServiceRequestMetadata).
+        /// </summary>
+        [HttpPut("{serviceRequestId}")]
+        public async Task<IActionResult> Update(long serviceRequestId, [FromBody] ServiceRequestDto request, [FromQuery] string? modifiedBy = null)
+        {
+            if (request == null)
+                return BadRequest("Invalid request payload.");
+
+            var updated = await _serviceRequest.UpdateByServiceRequestId(serviceRequestId, request, modifiedBy);
+            if (!updated)
+                return NotFound(new { message = "Service request not found or could not be updated." });
+
+            return Ok(new { success = true, serviceRequestId });
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ServiceRequestDto request)
         {

@@ -284,6 +284,28 @@ namespace GarageManagement.Application.Mappings
                    .ForMember(dest => dest.ContactPhone, opt => opt.Ignore())
                    .ForMember(dest => dest.ServiceRequest, opt => opt.Ignore());
 
+            // Entity -> DTO for get-by-id detail (populate Customer and Vehicle from metadata tables)
+            CreateMap<ServiceRequestCustomerMetaData, CustomerDto>()
+                .ForMember(dest => dest.CustomerID, opt => opt.MapFrom(src => src.CustomerID))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
+                .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.Phone))
+                .ForMember(dest => dest.MobilePhone, opt => opt.MapFrom(src => src.MobileNo))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.State))
+                .ForMember(dest => dest.PostalCode, opt => opt.MapFrom(src => src.PostalCode))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.Country));
+
+            CreateMap<ServiceRequestVehicleMetaData, VehicleDomainDTO>()
+                .ForMember(dest => dest.VehicleID, opt => opt.MapFrom(src => src.VehicleId))
+                .ForMember(dest => dest.Make, opt => opt.MapFrom(src => src.Make))
+                .ForMember(dest => dest.Model, opt => opt.MapFrom(src => src.Model))
+                .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.Year))
+                .ForMember(dest => dest.VIN, opt => opt.MapFrom(src => src.VIN))
+                .ForMember(dest => dest.LicensePlate, opt => opt.MapFrom(src => src.LicensePlate));
+
             //quotationDTO 
 
             // DTO to Entity

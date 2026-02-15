@@ -51,12 +51,13 @@ namespace GarageManagement.Application.Services.Request
 
         public async Task<bool> Create(ServiceRequestDto request)
         {
+            if (string.IsNullOrWhiteSpace(request.DomainType) || string.IsNullOrWhiteSpace(request.ServiceType) || string.IsNullOrWhiteSpace(request.Priority))
+                throw new ValidationException("ServiceRequest create requires DomainType, ServiceType and Priority.");
+
             // Run schema validation
             if (!_jsonValidator.ValidateJsonPayload(request, _jsonSchema, out List<string> errors))
             {
-                // 🔥 Validation failed, map errors
                 var errorMessage = string.Join("; ", errors);
-                // Throw a custom exception (or return a result object instead)
                 throw new ValidationException($"ServiceRequest validation failed: {errorMessage}");
             }
 
@@ -135,6 +136,57 @@ namespace GarageManagement.Application.Services.Request
                 Items = mappedItems,
                 TotalCount = pagedResult.TotalCount
             };
+        }
+
+        public async Task<ServiceRequestDto?> GetByIdAsync(long id)
+        {
+            var entity = await _serviceRequestRepository.GetByIdWithCustomerVehicleAndMetadataAsync(id);
+            if (entity == null)
+                return null;
+
+            var dto = _mapperUtility.Map<ServiceRequest, ServiceRequestDto>(entity);
+            dto.Status = entity.Status;
+
+            if (entity.customerMetaData != null)
+                dto.Customer = _mapperUtility.Map<ServiceRequestCustomerMetaData, CustomerDto>(entity.customerMetaData);
+
+            if (entity.vehicleMetaData != null && entity.vehicleMetaData.Any())
+                dto.DomainData = new DomainDataDto
+                {
+                    Vehicle = _mapperUtility.Map<ServiceRequestVehicleMetaData, VehicleDomainDTO>(entity.vehicleMetaData.First())
+                };
+
+            if (entity.Documents != null && entity.Documents.Any())
+                dto.Documents = entity.Documents.Select(d => _mapperUtility.Map<ServiceRequestDocument, DocumentDto>(d)).ToList();
+
+            if (entity.MetadataEntries != null)
+            {
+                var bookingMeta = entity.MetadataEntries.FirstOrDefault(m => string.Equals(m.KeyName, "Booking", StringComparison.OrdinalIgnoreCase));
+                if (bookingMeta != null && !string.IsNullOrEmpty(bookingMeta.KeyValue))
+                {
+                    try
+                    {
+                        dto.Booking = JsonSerializer.Deserialize<BookingDto>(bookingMeta.KeyValue);
+                    }
+                    catch { /* ignore */ }
+                }
+
+                var domainDataMeta = entity.MetadataEntries.FirstOrDefault(m => string.Equals(m.KeyName, "DomainData", StringComparison.OrdinalIgnoreCase));
+                if (domainDataMeta != null && !string.IsNullOrEmpty(domainDataMeta.KeyValue) && dto.DomainData != null)
+                {
+                    try
+                    {
+                        var storedDomainData = JsonSerializer.Deserialize<DomainDataDto>(domainDataMeta.KeyValue);
+                        if (storedDomainData?.Quotation != null)
+                            dto.DomainData.Quotation = storedDomainData.Quotation;
+                        if (storedDomainData?.Vehicle != null && dto.DomainData.Vehicle == null)
+                            dto.DomainData.Vehicle = storedDomainData.Vehicle;
+                    }
+                    catch { /* ignore */ }
+                }
+            }
+
+            return dto;
         }
 
         /// <summary>
@@ -228,6 +280,152 @@ namespace GarageManagement.Application.Services.Request
             }
 
             return modifiedRequest;
+        }
+
+        public async Task<bool> UpdateByServiceRequestId(long serviceRequestId, ServiceRequestDto request, string? modifiedBy = null)
+        {
+            var existing = await _serviceRequestRepository.GetByIdWithCustomerVehicleAndMetadataAsync(serviceRequestId);
+            if (existing == null)
+                return false;
+
+            var modifiedByUser = modifiedBy ?? request.CreatedBy ?? "System";
+            var now = DateTime.UtcNow;
+
+            // 1. Update ServiceRequest own fields when provided
+            if (request.Description != null)
+                existing.Description = request.Description;
+            if (request.Status != null)
+                existing.Status = request.Status;
+            if (request.Priority != null)
+                existing.Priority = request.Priority;
+            if (request.DomainType != null)
+                existing.DomainType = request.DomainType;
+            if (request.ServiceType != null)
+                existing.ServiceType = request.ServiceType;
+            if (request.TenantID.HasValue)
+                existing.TenantID = request.TenantID.Value;
+            if (request.OrgID.HasValue)
+                existing.OrgID = request.OrgID.Value;
+            if (request.DomainID.HasValue)
+                existing.DomainID = request.DomainID.Value;
+            if (request.ServiceID.HasValue)
+                existing.ServiceID = request.ServiceID.Value;
+
+            existing.ModifiedAt = now;
+            existing.ModifiedBy = modifiedByUser;
+
+            await _unitOfWork.ServiceRequest.UpdateAsync(existing);
+
+            // 2. Update or create customer section (SRCustomerMetaData + JSON metadata)
+            if (request.Customer != null)
+            {
+                await UpdateOrCreateCustomerMetadataAsync(existing, request.Customer, modifiedByUser, now);
+                await UpdateOrCreateJsonMetadataAsync(existing, "customer", request.Customer, modifiedByUser, now);
+            }
+
+            // 3. Update or create vehicle section (SRVehicleMetaData + DomainData JSON)
+            if (request.DomainData?.Vehicle != null)
+            {
+                await UpdateOrCreateVehicleMetadataAsync(existing, request.Customer, request.DomainData.Vehicle, modifiedByUser, now);
+                await UpdateOrCreateJsonMetadataAsync(existing, "DomainData", request.DomainData, modifiedByUser, now);
+            }
+
+            // 4. Update Booking JSON metadata if provided
+            if (request.Booking != null)
+                await UpdateOrCreateJsonMetadataAsync(existing, "Booking", request.Booking, modifiedByUser, now);
+
+            try
+            {
+                await _unitOfWork.CommitAsync();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task UpdateOrCreateCustomerMetadataAsync(ServiceRequest serviceRequest, CustomerDto customer, string modifiedBy, DateTime now)
+        {
+            if (serviceRequest.customerMetaData != null)
+            {
+                var meta = serviceRequest.customerMetaData;
+                _mapperUtility.Map(customer, meta);
+                meta.ModifiedAt = now;
+                meta.ModifiedBy = modifiedBy;
+                await _unitOfWork.SRCustomerMetaData.UpdateAsync(meta);
+            }
+            else
+            {
+                var newMeta = _mapperUtility.Map<CustomerDto, ServiceRequestCustomerMetaData>(customer);
+                newMeta.ServiceRequest = serviceRequest;
+                newMeta.RequestID = serviceRequest.Id;
+                newMeta.CustomerType = "Individual";
+                newMeta.TenantID = serviceRequest.TenantID;
+                newMeta.OrgID = serviceRequest.OrgID;
+                newMeta.CustomerID = serviceRequest.CustomerID;
+                newMeta.CustomerMetaGuid = Guid.NewGuid();
+                newMeta.CreatedAt = now;
+                newMeta.CreatedBy = modifiedBy;
+                await _unitOfWork.SRCustomerMetaData.AddTransactionAsync(newMeta);
+            }
+        }
+
+        private async Task UpdateOrCreateVehicleMetadataAsync(ServiceRequest serviceRequest, CustomerDto? customer, VehicleDomainDTO vehicle, string modifiedBy, DateTime now)
+        {
+            var firstVehicle = serviceRequest.vehicleMetaData?.FirstOrDefault();
+            if (firstVehicle != null)
+            {
+                _mapperUtility.Map(vehicle, firstVehicle);
+                if (customer != null)
+                {
+                    firstVehicle.OwnerName = string.Join(" ", new[] { customer.FirstName, customer.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s!.Trim())).Trim();
+                    firstVehicle.Email = customer.Email;
+                    firstVehicle.ContactNumber = string.IsNullOrEmpty(customer.MobilePhone) ? customer.Phone ?? "" : customer.MobilePhone;
+                    firstVehicle.Address = customer.Address;
+                }
+                firstVehicle.ModifiedAt = now;
+                firstVehicle.ModifiedBy = modifiedBy;
+                await _unitOfWork.SRVehicleMetaData.UpdateAsync(firstVehicle);
+            }
+            else
+            {
+                await StoreVehicleMetadataAsync(serviceRequest, customer ?? new CustomerDto(), vehicle);
+            }
+        }
+
+        private async Task UpdateOrCreateJsonMetadataAsync<T>(ServiceRequest serviceRequest, string keyName, T payload, string modifiedBy, DateTime now)
+        {
+            var jsonString = JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            {
+                WriteIndented = false,
+                DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            });
+
+            var existingMeta = serviceRequest.MetadataEntries?.FirstOrDefault(m => string.Equals(m.KeyName, keyName, StringComparison.OrdinalIgnoreCase));
+            if (existingMeta != null)
+            {
+                existingMeta.KeyValue = jsonString;
+                existingMeta.ModifiedAt = now;
+                existingMeta.ModifiedBy = modifiedBy;
+                await _unitOfWork.ServiceRequestMetadata.UpdateAsync(existingMeta);
+            }
+            else
+            {
+                var newMeta = new ServiceRequestMetadata
+                {
+                    MetaDataGuid = Guid.NewGuid(),
+                    RequestID = serviceRequest.Id,
+                    KeyName = keyName,
+                    KeyValue = jsonString,
+                    CreatedAt = now,
+                    CreatedBy = modifiedBy,
+                    IsActive = true,
+                    IsDeleted = false
+                };
+                await _unitOfWork.ServiceRequestMetadata.AddTransactionAsync(newMeta);
+            }
         }
 
         public async Task StoreCustomerMetadataAsync(ServiceRequest serviceRequest, CustomerDto customer)

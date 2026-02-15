@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -21,21 +21,20 @@ namespace GarageManagement.Application.DTOs
        
         public long? DomainID { get; set; }
 
-        [Required, MinLength(3), MaxLength(50)]
-        public string DomainType { get; set; } = null!;
+        [MinLength(3), MaxLength(50)]
+        public string? DomainType { get; set; }
 
-       
         public long? ServiceID { get; set; }
 
-        [Required, MinLength(3), MaxLength(50)]
-        public string ServiceType { get; set; } = null!;
+        [MinLength(3), MaxLength(50)]
+        public string? ServiceType { get; set; }
 
-        
-        public string? Description { get; set; } = null!;
+        public string? Description { get; set; }
 
-        [Required]
+        public string? Status { get; set; }
+
         [RegularExpression("Low|Medium|High|Critical")]
-        public string Priority { get; set; } = null!;
+        public string? Priority { get; set; }
 
        
         public string? CreatedBy { get; set; } = null!;
