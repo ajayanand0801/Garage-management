@@ -48,7 +48,24 @@ namespace GarageManagement.Infrastructure.Repositories
             // Assuming PK property is "Id" of type long
             return await query.FirstOrDefaultAsync(e => EF.Property<long>(e, "Id") == id);
         }
+        public async Task<T?> GetByVehicleIdAsync(long vehicleId, Func<IQueryable<T>, IQueryable<T>>? queryFunc = null)
+        {
+            IQueryable<T> query = _dbSet;
 
+            if (queryFunc != null)
+                query = queryFunc(query);
+
+            // When entity has IsActive and IsDeleted (e.g. BaseEntity), return only active and not-deleted rows
+            var hasIsActive = typeof(T).GetProperty("IsActive") != null;
+            var hasIsDeleted = typeof(T).GetProperty("IsDeleted") != null;
+            if (hasIsActive && hasIsDeleted)
+            {
+                query = query.Where(e => EF.Property<bool>(e, "IsActive") == true && EF.Property<bool>(e, "IsDeleted") == false);
+            }
+
+            // Vehicle entity property is "VehicleID" (capital ID); EF.Property requires exact property name.
+            return await query.FirstOrDefaultAsync(e => EF.Property<long>(e, "VehicleID") == vehicleId);
+        }
         public async Task<bool> AddAsync(T entity)
         {
             try

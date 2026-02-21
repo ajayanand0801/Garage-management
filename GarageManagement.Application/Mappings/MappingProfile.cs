@@ -1,6 +1,7 @@
 using AutoMapper;
 using GarageManagement.Application.DTOs;
 using GarageManagement.Domain.Entites;
+using GarageManagement.Domain.Entites.Booking;
 using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
@@ -568,6 +569,22 @@ namespace GarageManagement.Application.Mappings
 
             // WorkOrder -> WorkOrderDto
             CreateMap<WorkOrder, WorkOrderDto>();
+
+            // Booking: DTO -> Entity (Id, BookingGuid, BookingNo, ServiceRequestID, ObjectType set in service)
+            // BookingNo is generated server-side on create only and must never be set or updated from client.
+            CreateMap<BookingDto, Booking>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id ?? 0))
+                .ForMember(dest => dest.BookingGuid, opt => opt.Ignore())
+                .ForMember(dest => dest.BookingNo, opt => opt.Ignore())
+                .ForMember(dest => dest.ServiceRequestID, opt => opt.Ignore())
+                .ForMember(dest => dest.ObjectType, opt => opt.Ignore())
+                .ForMember(dest => dest.StatusNavigation, opt => opt.Ignore());
+
+            // Booking: Entity -> DTO (StatusName populated from StatusNavigation in service)
+            CreateMap<Booking, BookingDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.ServiceRequestId, opt => opt.MapFrom(src => src.ServiceRequestID))
+                .ForMember(dest => dest.StatusName, opt => opt.Ignore());
         }
     }
 

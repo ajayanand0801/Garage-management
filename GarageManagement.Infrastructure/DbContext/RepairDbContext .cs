@@ -1,7 +1,9 @@
 using GarageManagement.Domain.Entites;
+using GarageManagement.Domain.Entites.Booking;
 using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
+using GarageManagement.Domain.Entites.Service;
 using GarageManagement.Domain.Entites.WorkOrder;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -43,6 +45,13 @@ namespace GarageManagement.Infrastructure.DbContext
         //WorkOrder
         public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
 
+        // Booking (bkg schema)
+        public DbSet<Booking> Bookings => Set<Booking>();
+        public DbSet<BookingStatus> BookingStatuses => Set<BookingStatus>();
+
+        // GarageServices (rpa schema)
+        public DbSet<GarageService> GarageServices => Set<GarageService>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
@@ -63,6 +72,9 @@ namespace GarageManagement.Infrastructure.DbContext
             modelBuilder.Entity<QuotationItem>().ToTable("QuotationItem", "rpa");
             modelBuilder.Entity<Customer>().ToTable("Customer", "dbo");
             modelBuilder.Entity<WorkOrder>().ToTable("WorkOrder", "rpa");
+            modelBuilder.Entity<Booking>().ToTable("Booking", "bkg");
+            modelBuilder.Entity<BookingStatus>().ToTable("BookingStatus", "bkg");
+            modelBuilder.Entity<GarageService>().ToTable("GarageServices", "rpa");
 
             modelBuilder.Entity<WorkOrder>(entity =>
             {
@@ -326,6 +338,20 @@ namespace GarageManagement.Infrastructure.DbContext
                 entity.HasCheckConstraint("CK_Customer_RequiredFields", 
                     "([CustomerType]='Individual' AND [FirstName] IS NOT NULL AND [LastName] IS NOT NULL) OR ([CustomerType]='Company' AND [CompanyName] IS NOT NULL)");
             });
+
+            // Booking -> BookingStatus (bkg)
+            modelBuilder.Entity<Booking>()
+                .HasOne(b => b.StatusNavigation)
+                .WithMany()
+                .HasForeignKey(b => b.StatusID)
+                .HasPrincipalKey(s => s.Id);
+
+            // GarageService self-reference (Parent)
+            modelBuilder.Entity<GarageService>()
+                .HasOne(gs => gs.Parent)
+                .WithMany(gs => gs.Children)
+                .HasForeignKey(gs => gs.ParentId)
+                .IsRequired(false);
         }
     }
 
