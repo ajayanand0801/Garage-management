@@ -156,7 +156,7 @@ namespace GarageManagement.Application.Interfaces.Validator
       }
     },
     ""DomainData"": {
-      ""type"": ""object"",
+    ""type"": [""object"", ""null""],
       ""properties"": {
         ""Vehicle"": {
           ""type"": ""object"",

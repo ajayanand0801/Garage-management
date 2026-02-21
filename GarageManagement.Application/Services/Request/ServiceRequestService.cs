@@ -71,10 +71,11 @@ namespace GarageManagement.Application.Services.Request
             serviceRequest.Status = "draft";
             // Save ServiceRequest first to get generated Id
             await _unitOfWork.ServiceRequest.AddTransactionAsync(serviceRequest);
-
-            if (request.Customer != null && request.DomainData?.Vehicle != null)
-                await StoreVehicleMetadataAsync(serviceRequest, request.Customer, request.DomainData?.Vehicle);
-
+            if (request.DomainData != null)
+            {
+                if (request.Customer != null && request.DomainData?.Vehicle != null)
+                    await StoreVehicleMetadataAsync(serviceRequest, request.Customer, request.DomainData?.Vehicle);
+            }
 
             if (request.Customer != null)
             {
@@ -100,6 +101,7 @@ namespace GarageManagement.Application.Services.Request
                     documentEntity.RequestID = serviceRequest.Id;  // FK set here
                     documentEntity.CreatedAt = DateTime.UtcNow;
                     documentEntity.CreatedBy = docDto.UploadedBy ?? "System";
+                    
 
                     await _unitOfWork.ServiceRequestDocument.AddTransactionAsync(documentEntity);
                     //await _documentRepo.AddAsync(documentEntity);
