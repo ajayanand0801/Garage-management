@@ -90,15 +90,33 @@ namespace GarageManagement.Application.Services.Quotations
             return result;
         }
 
-        public async Task<bool> DeleteQuotationItemAsync(long quotationId, long id)
+        public async Task<(bool Success, string? ErrorMessage)> DeleteQuotationItemAsync(long quotationId, long id)
         {
+            var quotation = await _quotationGenericRepo.GetByIdAsync(quotationId);
+            if (quotation == null)
+                return (false, null);
+
+            if (QuotationStatusExtensions.IsRejected(quotation.Status))
+                return (false, "Items cannot be added, updated, or removed from a rejected quotation.");
+
             var item = await _unitOfWork.QuotationItem.GetByIdAsync(id);
             if (item == null)
-                return false;
+                return (false, null);
             if (item.QuotationID != quotationId)
-                return false;
+                return (false, null);
 
-            return await _unitOfWork.QuotationItem.SoftDelete(id);
+            var wasApproved = QuotationStatusExtensions.IsApproved(quotation.Status);
+            var deleted = await _unitOfWork.QuotationItem.SoftDelete(id);
+
+            if (deleted && wasApproved)
+            {
+                quotation.Status = QuotationStatus.Modified.ToStorageValue();
+                quotation.ModifiedAt = DateTime.UtcNow;
+                quotation.ModifiedBy = "System";
+                await _quotationGenericRepo.UpdateAsync(quotation);
+            }
+
+            return (deleted, null);
         }
 
         public async Task<(bool Success, string? ErrorMessage)> UpdateQuotationStatusAsync(long id, UpdateQuotationStatusRequest request)
@@ -175,15 +193,24 @@ namespace GarageManagement.Application.Services.Quotations
             throw new NotImplementedException();
         }
 
-        public async Task<bool> UpdateQuotationItemByQuoteIDAsync(long quoteId, List<QuotationItemDto> quotationItems)
+        public async Task<(bool Success, string? ErrorMessage)> UpdateQuotationItemByQuoteIDAsync(long quoteId, List<QuotationItemDto> quotationItems)
         {
+            var quotation = await _quotationGenericRepo.GetByIdAsync(quoteId);
+            if (quotation == null)
+                return (false, null);
+
+            if (QuotationStatusExtensions.IsRejected(quotation.Status))
+                return (false, "Items cannot be added, updated, or removed from a rejected quotation.");
+
+            var wasApproved = QuotationStatusExtensions.IsApproved(quotation.Status);
+
             // Load existing items from DB with tracking
             var existingItems = _quotationRepository
                 .GetQuotationByQuoteId(quoteId)
                 .ToList();  // EF Core tracked entities
 
             if (!existingItems.Any() && !quotationItems.Any())
-                return false; // Nothing to update
+                return (false, null);
 
             var existingDict = existingItems
                 .Where(e => e.Id != 0)
@@ -205,8 +232,7 @@ namespace GarageManagement.Application.Services.Quotations
                 }
                 else
                 {
-                    // New item — optionally uncomment if you want to support adding
-
+                    // New item
                     var newEntity = _mapperUtility.Map<QuotationItemDto, QuotationItem>(dto);
                     newEntity.QuotationID = quoteId;
                     newEntity.ItemGguid = Guid.NewGuid();
@@ -218,14 +244,22 @@ namespace GarageManagement.Application.Services.Quotations
                     newEntity.IsDeleted = false;
 
                     await _unitOfWork.QuotationItem.AddTransactionAsync(newEntity);
-
                 }
             }
 
             // Commit once, after all updates
             await _unitOfWork.CommitAsync();
 
-            return true;
+            // When quotation was approved, any add/update/remove of items sets status to Modified
+            if (wasApproved)
+            {
+                quotation.Status = QuotationStatus.Modified.ToStorageValue();
+                quotation.ModifiedAt = DateTime.UtcNow;
+                quotation.ModifiedBy = "System";
+                await _quotationGenericRepo.UpdateAsync(quotation);
+            }
+
+            return (true, null);
         }
 
 

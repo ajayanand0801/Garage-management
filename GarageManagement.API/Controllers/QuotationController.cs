@@ -120,13 +120,17 @@ namespace GarageManagement.API.Controllers
         }
 
         /// <summary>
-        /// Soft delete a specific quotation item by quotation ID and item ID.
+        /// Soft delete a specific quotation item. Rejected quotation: not allowed. Approved quotation: status becomes Modified after delete.
         /// </summary>
         [HttpDelete("{quotationId:long}/items/{itemId:long}")]
         public async Task<IActionResult> DeleteItem(long quotationId, long itemId)
         {
-            var result = await _quotationService.DeleteQuotationItemAsync(quotationId, itemId);
-            if (!result)
+            var (success, errorMessage) = await _quotationService.DeleteQuotationItemAsync(quotationId, itemId);
+
+            if (!string.IsNullOrEmpty(errorMessage))
+                return BadRequest(new { message = errorMessage });
+
+            if (!success)
                 return NotFound(new { message = $"Quotation item with ID {itemId} not found for quotation {quotationId}, or already deleted." });
 
             return Ok(new { success = true, message = "Quotation item deleted successfully." });
@@ -164,7 +168,7 @@ namespace GarageManagement.API.Controllers
         }
 
         /// <summary>
-        /// Update quotation items by Quote ID
+        /// Update quotation items by Quote ID. Rejected quotation: not allowed. Approved quotation: status becomes Modified after changes.
         /// </summary>
         [HttpPut("{quoteId:long}/items")]
         public async Task<IActionResult> UpdateQuotationItems(long quoteId, [FromBody] List<QuotationItemDto> quotationItems)
@@ -174,9 +178,12 @@ namespace GarageManagement.API.Controllers
 
             try
             {
-                var result = await _quotationService.UpdateQuotationItemByQuoteIDAsync(quoteId, quotationItems);
+                var (success, errorMessage) = await _quotationService.UpdateQuotationItemByQuoteIDAsync(quoteId, quotationItems);
 
-                if (!result)
+                if (!string.IsNullOrEmpty(errorMessage))
+                    return BadRequest(new { message = errorMessage });
+
+                if (!success)
                     return NotFound(new { message = $"No quotation found for Quote ID {quoteId} or items could not be updated." });
 
                 return Ok(new { success = true, message = "Quotation items updated successfully." });

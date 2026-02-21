@@ -17,12 +17,18 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
        Task<bool> UpdateQuotationAsync(long id, QuotationDTO updated);
         Task<bool> DeleteQuotationAsync(long id); // Soft delete
 
-        Task<bool> UpdateQuotationItemByQuoteIDAsync(long quoteId, List<QuotationItemDto> quotationItems);
+        /// <summary>
+        /// Updates quotation items. Rejected quotation: no changes allowed. Approved quotation: after changes, status becomes Modified.
+        /// </summary>
+        Task<(bool Success, string? ErrorMessage)> UpdateQuotationItemByQuoteIDAsync(long quoteId, List<QuotationItemDto> quotationItems);
         bool ValidateQuotation(QuotationDTO quotationDto, out List<string> errors);
 
         Task<PaginationResult<QuotationDTO>> GetAllQuotationsAsync(PaginationRequest request, CancellationToken cancellationToken);
 
-        Task<bool> DeleteQuotationItemAsync(long quotationId, long id); // Soft delete
+        /// <summary>
+        /// Soft-deletes a quotation item. Rejected quotation: not allowed. Approved quotation: after delete, status becomes Modified.
+        /// </summary>
+        Task<(bool Success, string? ErrorMessage)> DeleteQuotationItemAsync(long quotationId, long id);
 
         /// <summary>
         /// Updates quotation status to Approved or Rejected. RejectionNotes required when Rejected.

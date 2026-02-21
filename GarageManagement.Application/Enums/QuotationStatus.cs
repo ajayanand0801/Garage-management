@@ -5,6 +5,7 @@ namespace GarageManagement.Application.Enums
 {
     /// <summary>
     /// Quotation status. Only Approved and Rejected are allowed for status update API.
+    /// Modified is set automatically when items change on an approved quotation.
     /// </summary>
     public enum QuotationStatus
     {
@@ -15,7 +16,10 @@ namespace GarageManagement.Application.Enums
         Approved = 1,
 
         [Description("Rejected")]
-        Rejected = 2
+        Rejected = 2,
+
+        [Description("Modified")]
+        Modified = 3
     }
 
     /// <summary>
@@ -42,9 +46,22 @@ namespace GarageManagement.Application.Enums
                 QuotationStatus.Draft => "draft",
                 QuotationStatus.Approved => "approved",
                 QuotationStatus.Rejected => "rejected",
+                QuotationStatus.Modified => "modified",
                 _ => status.ToString().ToLowerInvariant()
             };
         }
+
+        /// <summary>
+        /// Normalized status string for comparison (lowercase).
+        /// </summary>
+        public static bool IsApproved(string? status) =>
+            string.Equals(status?.Trim(), "approved", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Normalized status string for comparison (lowercase).
+        /// </summary>
+        public static bool IsRejected(string? status) =>
+            string.Equals(status?.Trim(), "rejected", StringComparison.OrdinalIgnoreCase);
 
         public static bool TryParseFromRequest(string? value, out QuotationStatus status)
         {
