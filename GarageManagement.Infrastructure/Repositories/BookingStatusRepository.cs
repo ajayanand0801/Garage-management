@@ -1,3 +1,4 @@
+using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces;
 using GarageManagement.Domain.Entites.Booking;
 using GarageManagement.Infrastructure.DbContext;
@@ -27,5 +28,18 @@ namespace GarageManagement.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<IReadOnlyList<LookupDto>> GetLookupDtosAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.BookingStatuses
+                .Where(s => s.IsActive && !s.IsDeleted)
+                .OrderBy(s => s.StatusName)
+                .Select(s => new LookupDto
+                {
+                    Id = s.Id,
+                    Code = s.StatusName,
+                    DisplayName = s.StatusName
+                })
+                .ToListAsync(cancellationToken);
+        }
     }
 }

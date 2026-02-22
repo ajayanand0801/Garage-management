@@ -5,6 +5,8 @@ namespace GarageManagement.Application.Enums
     /// </summary>
     public enum LookupType
     {
-        GarageService = 1
+        GarageService = 1,
+        BookingStatus = 2,
+        ServiceCategory = 3
     }
 }

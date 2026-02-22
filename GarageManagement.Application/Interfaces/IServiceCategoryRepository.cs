@@ -1,9 +1,10 @@
+using GarageManagement.Application.DTOs;
 using GarageManagement.Domain.Entites.Service;
 
 namespace GarageManagement.Application.Interfaces
 {
     /// <summary>
-    /// Repository for [rpa].[ServiceCategory] lookup. Used to validate booking Type by category name.
+    /// Repository for [rpa].[ServiceCategory] lookup. Used to validate booking Type by category name and provide lookup data.
     /// </summary>
     public interface IServiceCategoryRepository
     {
@@ -12,5 +13,10 @@ namespace GarageManagement.Application.Interfaces
         /// </summary>
         Task<ServiceCategory?> GetByCategoryNameAndActiveAsync(string categoryName);
         Task<ServiceCategory?> GetByCategoryNameByCodeAsync(string code);
+
+        /// <summary>
+        /// Returns all active, non-deleted service categories as lookup DTOs (Id, Code, DisplayName).
+        /// </summary>
+        Task<IReadOnlyList<LookupDto>> GetLookupDtosAsync(CancellationToken cancellationToken = default);
     }
 }

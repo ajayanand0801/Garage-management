@@ -1,3 +1,4 @@
+using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces;
 using GarageManagement.Domain.Entites.Service;
 using GarageManagement.Infrastructure.DbContext;
@@ -32,6 +33,20 @@ namespace GarageManagement.Infrastructure.Repositories
             return await _context.ServiceCategories
                 .Where(c => c.Code.ToLower() == code.Trim().ToLower() && c.IsActive && !c.IsDeleted)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<IReadOnlyList<LookupDto>> GetLookupDtosAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.ServiceCategories
+                .Where(c => c.IsActive && !c.IsDeleted)
+                .OrderBy(c => c.CategoryName)
+                .Select(c => new LookupDto
+                {
+                    Id = c.Id,
+                    Code = c.Code,
+                    DisplayName = c.CategoryName
+                })
+                .ToListAsync(cancellationToken);
         }
     }
 }
