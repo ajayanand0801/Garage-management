@@ -1,4 +1,5 @@
-﻿using GarageManagement.Domain.Entites.Quotation;
+using GarageManagement.Domain.Entites.Booking;
+using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
 using System;
@@ -20,6 +21,7 @@ namespace GarageManagement.Application.Interfaces
         IGenericRepository<ServiceRequestCustomerMetaData> SRCustomerMetaData { get; }
         IGenericRepository<Quotation> Quotation { get; }
         IGenericRepository<QuotationItem> QuotationItem { get; }
+        IGenericRepository<Booking> Booking { get; }
         Task BeginTransactionAsync();
         Task CommitAsync();
         Task RollbackAsync();

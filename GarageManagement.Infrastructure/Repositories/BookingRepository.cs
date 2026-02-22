@@ -28,5 +28,12 @@ namespace GarageManagement.Infrastructure.Repositories
                 .Include(b => b.StatusNavigation)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<long> GetMaxIdAsync()
+        {
+            return await _context.Bookings
+                .Where(b => !b.IsDeleted)
+                .MaxAsync(b => (long?)b.Id) ?? 0;
+        }
     }
 }

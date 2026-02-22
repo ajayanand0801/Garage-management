@@ -49,8 +49,9 @@ namespace GarageManagement.Infrastructure.DbContext
         public DbSet<Booking> Bookings => Set<Booking>();
         public DbSet<BookingStatus> BookingStatuses => Set<BookingStatus>();
 
-        // GarageServices (rpa schema)
+        // GarageServices and ServiceCategory (rpa schema)
         public DbSet<GarageService> GarageServices => Set<GarageService>();
+        public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +76,7 @@ namespace GarageManagement.Infrastructure.DbContext
             modelBuilder.Entity<Booking>().ToTable("Booking", "bkg");
             modelBuilder.Entity<BookingStatus>().ToTable("BookingStatus", "bkg");
             modelBuilder.Entity<GarageService>().ToTable("GarageServices", "rpa");
+            modelBuilder.Entity<ServiceCategory>().ToTable("ServiceCategory", "rpa");
 
             modelBuilder.Entity<WorkOrder>(entity =>
             {

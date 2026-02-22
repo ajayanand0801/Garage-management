@@ -1,4 +1,5 @@
-﻿using GarageManagement.Application.Interfaces;
+using GarageManagement.Application.Interfaces;
+using GarageManagement.Domain.Entites.Booking;
 using GarageManagement.Domain.Entites.Quotation;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
@@ -27,6 +28,7 @@ namespace GarageManagement.Infrastructure.Repositories
         public IGenericRepository<ServiceRequestCustomerMetaData> SRCustomerMetaData { get; }
         public IGenericRepository<Quotation> Quotation { get; }
         public IGenericRepository<QuotationItem> QuotationItem { get; }
+        public IGenericRepository<Booking> Booking { get; }
 
         public UnitOfWork(RepairDbContext context)
         {
@@ -42,6 +44,7 @@ namespace GarageManagement.Infrastructure.Repositories
             SRCustomerMetaData = new GenericRepository<ServiceRequestCustomerMetaData>(_context);
             Quotation = new GenericRepository<Quotation>(_context);
             QuotationItem = new GenericRepository<QuotationItem>(_context);
+            Booking = new GenericRepository<Booking>(_context);
         }
 
         public async Task BeginTransactionAsync()

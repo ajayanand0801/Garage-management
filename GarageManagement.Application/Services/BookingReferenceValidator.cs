@@ -3,6 +3,7 @@ using GarageManagement.Application.Interfaces;
 using GarageManagement.Domain.Entites;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
+using System.ComponentModel.DataAnnotations;
 
 namespace GarageManagement.Application.Services
 {
@@ -16,17 +17,25 @@ namespace GarageManagement.Application.Services
         private readonly IGenericRepository<Vehicle> _vehicleRepository;
         private readonly IGenericRepository<ServiceRequest> _serviceRequestRepository;
         private readonly IGarageServiceRepository _garageServiceRepository;
+        private readonly IServiceCategoryRepository _serviceCategoryRepository;
+        private readonly IBookingStatusRepository _bookingStatusRepository;
+
+
 
         public BookingReferenceValidator(
             IGenericRepository<Customer> customerRepository,
             IGenericRepository<Vehicle> vehicleRepository,
             IGenericRepository<ServiceRequest> serviceRequestRepository,
-            IGarageServiceRepository garageServiceRepository)
+            IGarageServiceRepository garageServiceRepository,
+            IServiceCategoryRepository serviceCategoryRepository,
+            IBookingStatusRepository bookingStatusRepository)
         {
             _customerRepository = customerRepository;
             _vehicleRepository = vehicleRepository;
             _serviceRequestRepository = serviceRequestRepository;
             _garageServiceRepository = garageServiceRepository;
+            _serviceCategoryRepository = serviceCategoryRepository;
+            _bookingStatusRepository = bookingStatusRepository;
         }
 
         /// <inheritdoc />
@@ -34,6 +43,20 @@ namespace GarageManagement.Application.Services
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
+
+            if (!string.IsNullOrWhiteSpace(dto.Status))
+            {
+                var status = await _bookingStatusRepository.GetByIdAndActiveAsync(dto.Status);
+                if (status == null)
+                    throw new ValidationException($"Invalid booking status.  {dto.Status}.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(dto.Type))
+            {
+                var serviceCategory = await _serviceCategoryRepository.GetByCategoryNameByCodeAsync(dto.Type.Trim());
+                if (serviceCategory == null)
+                    throw new ValidationException($"Invalid booking TypeCode. '{dto.Type}'.");
+            }
 
             // ServiceID must reference a valid, active garage service
             var garageService = await _garageServiceRepository.GetByIdAsync(dto.ServiceID, null);

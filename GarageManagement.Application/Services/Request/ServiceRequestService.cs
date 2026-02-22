@@ -25,6 +25,7 @@ namespace GarageManagement.Application.Services.Request
         private readonly IPaginationService<ServiceRequest> _paginationService;
         private readonly IMapperUtility _mapperUtility;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IBookingService _bookingService;
 
         // Assume you inject the schema as well (static or from config)
         private readonly string _jsonSchema = JsonRules.ServiceRequestSchema;
@@ -37,7 +38,8 @@ namespace GarageManagement.Application.Services.Request
          IServiceRequestRepository serviceRequestRepository,
          IPaginationService<ServiceRequest> paginationService,
          IMapperUtility mapperUtility,
-         IUnitOfWork unitOfWork)
+         IUnitOfWork unitOfWork,
+         IBookingService bookingService)
         {
             _jsonValidator = jsonValidator;
             _serviceRequestRepo = serviceRequestRepo;
@@ -47,6 +49,7 @@ namespace GarageManagement.Application.Services.Request
             _paginationService = paginationService;
             _mapperUtility = mapperUtility;
             _unitOfWork = unitOfWork;
+            _bookingService = bookingService;
         }
 
         public async Task<bool> Create(ServiceRequestDto request)
@@ -69,7 +72,8 @@ namespace GarageManagement.Application.Services.Request
             serviceRequest.CreatedBy = request.CreatedBy ?? "System";
             serviceRequest.RequestGuid= Guid.NewGuid();
             serviceRequest.Status = "draft";
-            // Save ServiceRequest first to get generated Id
+
+            await _unitOfWork.BeginTransactionAsync();
             await _unitOfWork.ServiceRequest.AddTransactionAsync(serviceRequest);
             if (request.DomainData != null)
             {
@@ -87,33 +91,42 @@ namespace GarageManagement.Application.Services.Request
             if (request.Booking != null)
                 await StoreBookingMetadataAsync(serviceRequest, request.Booking);
 
-
             if (serviceRequest.CreatedBy != null)
                 await StoreDomainDataAsync(serviceRequest, request.DomainData);
 
+            // Flush within same transaction to get identity IDs (e.g. serviceRequest.Id) for documents and booking
+            await _unitOfWork.SaveChangesAsync();
 
             if (request.Documents != null)
             {
                 foreach (var docDto in request.Documents)
                 {
                     var documentEntity = _mapperUtility.Map<DocumentDto, ServiceRequestDocument>(docDto);
-
-                    documentEntity.RequestID = serviceRequest.Id;  // FK set here
+                    documentEntity.RequestID = serviceRequest.Id;
                     documentEntity.CreatedAt = DateTime.UtcNow;
                     documentEntity.CreatedBy = docDto.UploadedBy ?? "System";
-                    
-
                     await _unitOfWork.ServiceRequestDocument.AddTransactionAsync(documentEntity);
-                    //await _documentRepo.AddAsync(documentEntity);
                 }
             }
-            //Commit all
+
+            // Booking in same transaction as service request (IBookingService uses same scoped IUnitOfWork)
+            if (request.Booking != null)
+            {
+                request.Booking.ServiceRequestId = serviceRequest.Id;
+                request.Booking.CustomerID = serviceRequest.CustomerID;
+                request.Booking.VehicleID = serviceRequest.VehicleID;
+                request.Booking.ServiceID = request.Booking.ServiceID > 0 ? request.Booking.ServiceID : (serviceRequest.ServiceID > 0 ? serviceRequest.ServiceID : 0);
+                request.Booking.TenantID = request.Booking.TenantID > 0 ? request.Booking.TenantID : serviceRequest.TenantID;
+                request.Booking.OrgID = request.Booking.OrgID > 0 ? request.Booking.OrgID : serviceRequest.OrgID;
+                request.Booking.DomainID = request.Booking.DomainID > 0 ? request.Booking.DomainID : serviceRequest.DomainID;
+                await _bookingService.AddBookingTransactionAsync(request.Booking, request.CreatedBy);
+            }
+
             try
             {
                 await _unitOfWork.CommitAsync();
             }
             catch (Exception ex) { }
-            // You can add more logic here (e.g., metadata) if needed
 
             return true;
         }
@@ -574,7 +587,6 @@ namespace GarageManagement.Application.Services.Request
             await _unitOfWork.SRVehicleMetaData.AddTransactionAsync(svVehicleMetaData);
         }
 
-
         public async Task StoreBookingMetadataAsync(ServiceRequest serviceRequest, BookingDto booking)
         {
             if (booking == null)
@@ -606,7 +618,7 @@ namespace GarageManagement.Application.Services.Request
                 IsActive = true,
                 IsDeleted = false
             };
-            await _unitOfWork.ServiceRequestMetadata.AddAsync(metadata);
+            await _unitOfWork.ServiceRequestMetadata.AddTransactionAsync(metadata);
             //foreach (var kvp in keyValues)
             //{
             //    if (kvp.Value == null) continue;

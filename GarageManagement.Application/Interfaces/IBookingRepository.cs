@@ -13,5 +13,10 @@ namespace GarageManagement.Application.Interfaces
         /// Gets booking by id with status, for update/detail.
         /// </summary>
         Task<Booking?> GetByIdWithStatusAsync(long id);
+
+        /// <summary>
+        /// Gets the current max Id from the booking table (excluding soft-deleted). Used to generate next BookingNo.
+        /// </summary>
+        Task<long> GetMaxIdAsync();
     }
 }

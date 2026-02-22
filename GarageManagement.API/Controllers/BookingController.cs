@@ -2,6 +2,7 @@ using ComponentManagement.PaginationUtility;
 using GarageManagement.Application.DTOs;
 using GarageManagement.Application.Interfaces.ServiceInterface;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace GarageManagement.API.Controllers
 {
@@ -14,6 +15,18 @@ namespace GarageManagement.API.Controllers
         public BookingController(IBookingService bookingService)
         {
             _bookingService = bookingService;
+        }
+
+        /// <summary>
+        /// Get booking by ID with customer, vehicle, and service details. Detail objects are null when not found.
+        /// </summary>
+        [HttpGet("details/{id}")]
+        public async Task<IActionResult> GetByIdWithDetails(long id)
+        {
+            var booking = await _bookingService.GetByIdWithDetailsAsync(id);
+            if (booking == null)
+                return NotFound(new { message = $"Booking with ID {id} not found." });
+            return Ok(booking);
         }
 
         /// <summary>
@@ -55,6 +68,10 @@ namespace GarageManagement.API.Controllers
                     return BadRequest("Failed to create booking.");
                 return CreatedAtAction(nameof(GetById), new { id = created.Id.Value }, created);
             }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
@@ -76,7 +93,33 @@ namespace GarageManagement.API.Controllers
                     return NotFound(new { message = $"Booking with ID {id} not found." });
                 return Ok(new { success = true, message = "Booking updated successfully." });
             }
+            catch (ValidationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
             catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Partial update of a booking by ID. Updates only provided fields: StatusID, Status, Type, StartDate, EndDate, DurationType, Notes.
+        /// StartDate and EndDate must not be in the past. StatusID must be a valid active [bkg].[BookingStatus] Id.
+        /// </summary>
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> Patch(long id, [FromBody] BookingPatchDto dto)
+        {
+            if (dto == null)
+                return BadRequest(new { message = "Patch payload cannot be null." });
+            try
+            {
+                var updated = await _bookingService.PatchAsync(id, dto);
+                if (updated == null)
+                    return NotFound(new { message = $"Booking with ID {id} not found." });
+                return Ok(updated);
+            }
+            catch (ValidationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }

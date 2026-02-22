@@ -3,6 +3,7 @@ using GarageManagement.Application.DTOs;
 using GarageManagement.Domain.Entites;
 using GarageManagement.Domain.Entites.Booking;
 using GarageManagement.Domain.Entites.Quotation;
+using GarageManagement.Domain.Entites.Service;
 using GarageManagement.Domain.Entites.Request;
 using GarageManagement.Domain.Entites.Vehicles;
 using GarageManagement.Domain.Entites.WorkOrder;
@@ -585,6 +586,30 @@ namespace GarageManagement.Application.Mappings
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.ServiceRequestId, opt => opt.MapFrom(src => src.ServiceRequestID))
                 .ForMember(dest => dest.StatusName, opt => opt.Ignore());
+
+            // Booking -> BookingWithDetailsDto (detail objects set in service)
+            CreateMap<Booking, BookingDetailsDto>()
+                .ForMember(dest => dest.ServiceRequestId, opt => opt.MapFrom(src => src.ServiceRequestID))
+                .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.StatusNavigation != null ? src.StatusNavigation.StatusName : (string?)null))
+                .ForMember(dest => dest.CustomerDetails, opt => opt.Ignore())
+                .ForMember(dest => dest.VehicleDetails, opt => opt.Ignore())
+                .ForMember(dest => dest.ServiceDetails, opt => opt.Ignore());
+
+            // Customer -> BookingCustomerDetailDto (FullName from FirstName + LastName)
+            CreateMap<Customer, BookingCustomerDetailDto>()
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src =>
+                    string.Join(" ", new[] { src.FirstName, src.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim()))
+                .AfterMap((src, dest) =>
+                {
+                    if (string.IsNullOrEmpty(dest.FullName)) dest.FullName = null;
+                });
+
+            // Vehicle -> BookingVehicleDetailDto
+            CreateMap<Vehicle, BookingVehicleDetailDto>()
+                .ForMember(dest => dest.VehicleID, opt => opt.MapFrom(src => src.VehicleID));
+
+            // GarageService -> BookingServiceDetailDto
+            CreateMap<GarageService, BookingServiceDetailDto>();
         }
     }
 

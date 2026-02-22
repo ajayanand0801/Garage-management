@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,6 +70,8 @@ builder.Services.AddScoped<IQuotationRepository, QuotationRepository>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IBookingStatusRepository, BookingStatusRepository>();
+builder.Services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
 builder.Services.AddScoped<IGarageServiceRepository, GarageServiceRepository>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -118,6 +121,22 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
+
+// Return validation/business errors as 400 with { "message": "..." } only (no stack trace)
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(context);
+    }
+    catch (ValidationException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+    }
+});
+
 app.UseAuthorization();
 app.MapControllers();
 
