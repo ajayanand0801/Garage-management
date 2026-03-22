@@ -87,3 +87,14 @@ yarn-error.log*
 pnpm-debug.log*
 
 /curl-requests
+/GMS_Sequence_Diagrams_DrawIO
+/scripts
+/Garage Management API.postman_collection.json
+/GarageManagement.postman_collection.json
+/Garage_Management_FRD.docx
+/Garage_Management_SRS.docx
+/GMS_API_Documentation.docx
+/GMS_Architecture_Professional.drawio
+/GMS_HighLevel_Architecture.drawio
+/GMS_Sequence_Diagrams_DrawIO.zip
+/service_request_sequence_diagram.svg
