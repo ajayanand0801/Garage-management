@@ -10,15 +10,18 @@ namespace GarageManagement.Application.Services
         private readonly IGarageServiceRepository _garageServiceRepository;
         private readonly IBookingStatusRepository _bookingStatusRepository;
         private readonly IServiceCategoryRepository _serviceCategoryRepository;
+        private readonly IWorkOrderStatusRepository _workOrderStatusRepository;
 
         public LookupService(
             IGarageServiceRepository garageServiceRepository,
             IBookingStatusRepository bookingStatusRepository,
-            IServiceCategoryRepository serviceCategoryRepository)
+            IServiceCategoryRepository serviceCategoryRepository,
+            IWorkOrderStatusRepository workOrderStatusRepository)
         {
             _garageServiceRepository = garageServiceRepository;
             _bookingStatusRepository = bookingStatusRepository;
             _serviceCategoryRepository = serviceCategoryRepository;
+            _workOrderStatusRepository = workOrderStatusRepository;
         }
 
         public async Task<IReadOnlyList<LookupDto>> GetLookupAsync(LookupType type, CancellationToken cancellationToken = default)
@@ -28,6 +31,7 @@ namespace GarageManagement.Application.Services
                 LookupType.GarageService => await _garageServiceRepository.GetLookupDtosAsync(cancellationToken),
                 LookupType.BookingStatus => await _bookingStatusRepository.GetLookupDtosAsync(cancellationToken),
                 LookupType.ServiceCategory => await _serviceCategoryRepository.GetLookupDtosAsync(cancellationToken),
+                LookupType.WorkOrderStatus => await _workOrderStatusRepository.GetLookupDtosAsync(cancellationToken),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unsupported lookup type.")
             };
         }
@@ -47,13 +51,13 @@ namespace GarageManagement.Application.Services
                 throw new ArgumentOutOfRangeException(nameof(typeName), typeName, "Lookup type name is required.");
 
             var name = typeName.Trim();
-            if (string.Equals(name, "BookingType", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(name, "Type", StringComparison.OrdinalIgnoreCase) || string.Equals(name, "BookingType", StringComparison.OrdinalIgnoreCase))
                 return LookupType.ServiceCategory;
 
             if (Enum.TryParse<LookupType>(name, ignoreCase: true, out var type))
                 return type;
 
-            throw new ArgumentOutOfRangeException(nameof(typeName), typeName, $"Unsupported lookup type. Use: GarageService, BookingStatus,  or BookingType.");
+            throw new ArgumentOutOfRangeException(nameof(typeName), typeName, $"Unsupported lookup type. Use: GarageService, BookingStatus, ServiceCategory, WorkOrderStatus, or Type.");
         }
     }
 }

@@ -52,7 +52,10 @@ namespace GarageManagement.Application.Services.Request
             _bookingService = bookingService;
         }
 
-        public async Task<bool> Create(ServiceRequestDto request)
+        /// <summary>Format: SR-###### (six digits), e.g. SR-000101.</summary>
+        private static string FormatServiceRequestNo(long id) => $"SR-{id:D6}";
+
+        public async Task<ServiceRequestDto?> Create(ServiceRequestDto request)
         {
             if (string.IsNullOrWhiteSpace(request.DomainType) || string.IsNullOrWhiteSpace(request.ServiceType) || string.IsNullOrWhiteSpace(request.Priority))
                 throw new ValidationException("ServiceRequest create requires DomainType, ServiceType and Priority.");
@@ -96,6 +99,7 @@ namespace GarageManagement.Application.Services.Request
 
             // Flush within same transaction to get identity IDs (e.g. serviceRequest.Id) for documents and booking
             await _unitOfWork.SaveChangesAsync();
+            serviceRequest.RequestNo = FormatServiceRequestNo(serviceRequest.Id);
 
             if (request.Documents != null)
             {
@@ -126,9 +130,13 @@ namespace GarageManagement.Application.Services.Request
             {
                 await _unitOfWork.CommitAsync();
             }
-            catch (Exception ex) { }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                return null;
+            }
 
-            return true;
+            return await GetByIdAsync(serviceRequest.Id);
         }
 
         public async Task<PaginationResult<ServiceListDto>> GetServiceRequestsAsync(PaginationRequest request, CancellationToken cancellationToken = default)
@@ -160,7 +168,13 @@ namespace GarageManagement.Application.Services.Request
                 return null;
 
             var dto = _mapperUtility.Map<ServiceRequest, ServiceRequestDto>(entity);
-            dto.Status = entity.Status;
+
+            if (!string.IsNullOrWhiteSpace(entity.Status))
+                dto.Status = entity.Status;
+
+            var employeeKv = ServiceRequestEmployeeMetadataParser.TryParseFromEntries(entity.MetadataEntries);
+            if (employeeKv != null)
+                dto.Employee = employeeKv;
 
             if (entity.customerMetaData != null)
                 dto.Customer = _mapperUtility.Map<ServiceRequestCustomerMetaData, CustomerDto>(entity.customerMetaData);

@@ -7,6 +7,7 @@ namespace GarageManagement.Application.Enums
     {
         GarageService = 1,
         BookingStatus = 2,
-        ServiceCategory = 3
+        ServiceCategory = 3,
+        WorkOrderStatus = 4
     }
 }

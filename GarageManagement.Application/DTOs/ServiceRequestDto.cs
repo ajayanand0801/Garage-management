@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GarageManagement.Application.DTOs
@@ -11,6 +12,9 @@ namespace GarageManagement.Application.DTOs
     {
         
         public long? ServiceRequestID { get; set; }
+
+        /// <summary>Server-generated display number, e.g. SR-000101.</summary>
+        public string? RequestNo { get; set; }
 
         
         public long? TenantID { get; set; }
@@ -31,7 +35,13 @@ namespace GarageManagement.Application.DTOs
 
         public string? Description { get; set; }
 
+        /// <summary>From ServiceRequest.Status when non-empty; omitted from JSON when null.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Status { get; set; }
+
+        /// <summary>From ServiceRequestMetadata KeyName &quot;Employee&quot; JSON object; omitted when absent or empty.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Dictionary<string, string>? Employee { get; set; }
 
         [RegularExpression("Low|Medium|High|Critical")]
         public string? Priority { get; set; }

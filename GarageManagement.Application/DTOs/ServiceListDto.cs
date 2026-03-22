@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
 namespace GarageManagement.Application.DTOs
 {
     /// <summary>
@@ -6,6 +9,14 @@ namespace GarageManagement.Application.DTOs
     public class ServiceListDto
     {
         public long ServiceRequestID { get; set; }
+        /// <summary>Display number from ServiceRequest.RequestNo, e.g. SR-000101.</summary>
+        public string? RequestNo { get; set; }
+        /// <summary>From ServiceRequest.Status when non-empty; omitted from JSON when null.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Status { get; set; }
+        /// <summary>From ServiceRequestMetadata KeyName &quot;Employee&quot; JSON object as key/value pairs; omitted when absent or empty.</summary>
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Dictionary<string, string>? Employee { get; set; }
         public string? ServiceType { get; set; }
         public string? DomainType { get; set; }
         /// <summary>Combination of FirstName and LastName.</summary>

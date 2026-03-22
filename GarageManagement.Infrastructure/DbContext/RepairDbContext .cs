@@ -42,8 +42,9 @@ namespace GarageManagement.Infrastructure.DbContext
         //Customer
         public DbSet<Customer> Customers => Set<Customer>();
 
-        //WorkOrder
+        // WorkOrder and WorkOrderStatus (rpa schema)
         public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
+        public DbSet<WorkOrderStatus> WorkOrderStatuses => Set<WorkOrderStatus>();
 
         // Booking (bkg schema)
         public DbSet<Booking> Bookings => Set<Booking>();
@@ -73,6 +74,7 @@ namespace GarageManagement.Infrastructure.DbContext
             modelBuilder.Entity<QuotationItem>().ToTable("QuotationItem", "rpa");
             modelBuilder.Entity<Customer>().ToTable("Customer", "dbo");
             modelBuilder.Entity<WorkOrder>().ToTable("WorkOrder", "rpa");
+            modelBuilder.Entity<WorkOrderStatus>().ToTable("WorkOrderStatus", "rpa");
             modelBuilder.Entity<Booking>().ToTable("Booking", "bkg");
             modelBuilder.Entity<BookingStatus>().ToTable("BookingStatus", "bkg");
             modelBuilder.Entity<GarageService>().ToTable("GarageServices", "rpa");

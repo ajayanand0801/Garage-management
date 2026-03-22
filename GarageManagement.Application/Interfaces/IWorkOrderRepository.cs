@@ -6,5 +6,8 @@ namespace GarageManagement.Application.Interfaces
     {
         Task<WorkOrder?> GetByIdAsync(long id);
         Task<bool> AddAsync(WorkOrder entity);
+        Task<bool> UpdateAsync(WorkOrder entity);
+        Task<bool> SoftDeleteAsync(long id);
+        IQueryable<WorkOrder> GetQueryableForList();
     }
 }

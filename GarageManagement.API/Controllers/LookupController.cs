@@ -18,8 +18,8 @@ namespace GarageManagement.API.Controllers
 
         /// <summary>
         /// Get lookup data by type. Returns standard payload: Id, Code, DisplayName.
-        /// Types: GarageService (1), BookingStatus (2), ServiceCategory (3).
-        /// Example: GET api/lookup?type=GarageService | GET api/lookup?type=BookingStatus | GET api/lookup?type=ServiceCategory
+        /// Types: GarageService (1), BookingStatus (2), ServiceCategory (3), WorkOrderStatus (4).
+        /// Example: GET api/lookup?type=WorkOrderStatus | GET api/lookup?type=BookingStatus
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetLookup([FromQuery] LookupType type, CancellationToken cancellationToken = default)
@@ -36,9 +36,9 @@ namespace GarageManagement.API.Controllers
         }
 
         /// <summary>
-        /// Get lookup data by type name (string). Accepts: GarageService, BookingStatus, ServiceCategory, or Type (returns ServiceCategory).
+        /// Get lookup data by type name (string). Accepts: GarageService, BookingStatus, ServiceCategory, WorkOrderStatus, or Type (returns ServiceCategory).
         /// Case-insensitive. Returns standard payload: Id, Code, DisplayName.
-        /// Example: GET api/lookup/by-name?typeName=Type | GET api/lookup/by-name?typeName=BookingStatus
+        /// Example: GET api/lookup/type?typeName=WorkOrderStatus | GET api/lookup/type?typeName=BookingStatus
         /// </summary>
         [HttpGet("type")]
         public async Task<IActionResult> GetLookupByTypeName([FromQuery] string typeName, CancellationToken cancellationToken = default)

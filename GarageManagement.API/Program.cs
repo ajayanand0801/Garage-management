@@ -72,6 +72,7 @@ builder.Services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingStatusRepository, BookingStatusRepository>();
 builder.Services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
+builder.Services.AddScoped<IWorkOrderStatusRepository, WorkOrderStatusRepository>();
 builder.Services.AddScoped<IGarageServiceRepository, GarageServiceRepository>();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

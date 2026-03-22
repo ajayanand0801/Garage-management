@@ -16,6 +16,7 @@ namespace GarageManagement.Application.Interfaces
         Task<bool> AddTransactionAsync(T entity);
         Task<bool> SoftDelete(long id);
         Task<T?> GetByVehicleIdAsync(long vehicleId, Func<IQueryable<T>, IQueryable<T>>? queryFunc = null);
+        Task<T?> GetByQuotationIdAsync(long quotationId, Func<IQueryable<T>, IQueryable<T>>? queryFunc = null);
     }
 
 }

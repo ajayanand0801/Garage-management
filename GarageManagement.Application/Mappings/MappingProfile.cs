@@ -1,5 +1,6 @@
 using AutoMapper;
 using GarageManagement.Application.DTOs;
+using GarageManagement.Application.Services.Request;
 using GarageManagement.Domain.Entites;
 using GarageManagement.Domain.Entites.Booking;
 using GarageManagement.Domain.Entites.Quotation;
@@ -12,8 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 
 namespace GarageManagement.Application.Mappings
 {
@@ -119,6 +118,7 @@ namespace GarageManagement.Application.Mappings
             // Dto -> Entity
             CreateMap<ServiceRequestDto, ServiceRequest>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ServiceRequestID))
+                .ForMember(dest => dest.RequestNo, opt => opt.Ignore())
                 .ForMember(dest => dest.TenantID, opt => opt.MapFrom(src => src.TenantID ?? 0))
                 .ForMember(dest => dest.OrgID, opt => opt.MapFrom(src => src.OrgID ?? 0))
                 .ForMember(dest => dest.DomainID, opt => opt.MapFrom(src => src.DomainID ?? 0))
@@ -140,6 +140,7 @@ namespace GarageManagement.Application.Mappings
             // Entity -> DTO
             CreateMap<ServiceRequest, ServiceRequestDto>()
                 .ForMember(dest => dest.ServiceRequestID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.RequestNo, opt => opt.MapFrom(src => src.RequestNo))
                 .ForMember(dest => dest.TenantID, opt => opt.MapFrom(src => src.TenantID))
                 .ForMember(dest => dest.OrgID, opt => opt.MapFrom(src => src.OrgID))
                 .ForMember(dest => dest.DomainID, opt => opt.MapFrom(src => src.DomainID))
@@ -147,6 +148,8 @@ namespace GarageManagement.Application.Mappings
                 .ForMember(dest => dest.DomainType, opt => opt.MapFrom(src => src.DomainType))
                 .ForMember(dest => dest.ServiceType, opt => opt.MapFrom(src => src.ServiceType))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.Employee, opt => opt.Ignore())
                 .ForMember(dest => dest.Priority, opt => opt.MapFrom(src => src.Priority))
                 .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
@@ -188,6 +191,9 @@ namespace GarageManagement.Application.Mappings
             // Customer/vehicle fields set in AfterMap to avoid expression-tree limits (block body, ?. operator)
             CreateMap<ServiceRequest, ServiceListDto>()
                 .ForMember(dest => dest.ServiceRequestID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.RequestNo, opt => opt.MapFrom(src => src.RequestNo))
+                .ForMember(dest => dest.Status, opt => opt.Ignore())
+                .ForMember(dest => dest.Employee, opt => opt.Ignore())
                 .ForMember(dest => dest.ServiceType, opt => opt.MapFrom(src => src.ServiceType))
                 .ForMember(dest => dest.DomainType, opt => opt.MapFrom(src => src.DomainType))
                 .ForMember(dest => dest.CustomerName, opt => opt.Ignore())
@@ -233,6 +239,13 @@ namespace GarageManagement.Application.Mappings
                         dest.Vin = v.VIN;
                         dest.LicensePlate = v.LicensePlate;
                     }
+
+                    if (!string.IsNullOrWhiteSpace(src.Status))
+                        dest.Status = src.Status;
+
+                    var employeeKv = ServiceRequestEmployeeMetadataParser.TryParseFromEntries(src.MetadataEntries);
+                    if (employeeKv != null)
+                        dest.Employee = employeeKv;
                 });
 
 

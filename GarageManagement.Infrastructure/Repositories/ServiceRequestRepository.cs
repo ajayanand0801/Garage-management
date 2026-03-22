@@ -22,9 +22,11 @@ namespace GarageManagement.Infrastructure.Repositories
         public IQueryable<ServiceRequest> GetQueryableForList()
         {
             return _context.ServiceRequests
+                .AsSplitQuery()
                 .Where(sr => sr.IsActive && !sr.IsDeleted)
                 .Include(sr => sr.customerMetaData)
-                .Include(sr => sr.vehicleMetaData);
+                .Include(sr => sr.vehicleMetaData)
+                .Include(sr => sr.MetadataEntries);
         }
 
         public async Task<IEnumerable<ServiceRequest>> GetAllActiveRequestsAsync()

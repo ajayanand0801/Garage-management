@@ -10,7 +10,8 @@ namespace GarageManagement.Application.Interfaces.ServiceInterface
 {
     public interface IServiceRequest
     {
-        Task<bool> Create(ServiceRequestDto request);
+        /// <summary>Creates a service request, assigns RequestNo (SR-######), and returns the persisted DTO or null if the transaction failed.</summary>
+        Task<ServiceRequestDto?> Create(ServiceRequestDto request);
 
         Task<PaginationResult<ServiceListDto>> GetServiceRequestsAsync(PaginationRequest request, CancellationToken cancellationToken = default);
 

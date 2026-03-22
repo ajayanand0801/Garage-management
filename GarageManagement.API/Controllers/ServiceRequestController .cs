@@ -78,8 +78,11 @@ namespace GarageManagement.API.Controllers
         {
             try
             {
-                var result = await _serviceRequest.Create(request);
-                return CreatedAtAction(nameof(Create), new { success = result }, request);
+                var created = await _serviceRequest.Create(request);
+                if (created == null)
+                    return StatusCode(500, new { message = "Service request could not be committed." });
+
+                return CreatedAtAction(nameof(GetById), new { id = created.ServiceRequestID }, created);
             }
             catch (ValidationException ex)
             {
